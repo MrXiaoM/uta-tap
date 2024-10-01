@@ -4,47 +4,47 @@ $(function() {
 var MainManager = function() {
     aidn.util.useDummyDiv();
     function a() {
-        G = aidn.window.width();
-        A = aidn.window.height();
-        if (I) {
-            I.resize(G, A);
-            if (g) g.resize();
+        windowWidth = aidn.window.width();
+        windowHeight = aidn.window.height();
+        if (renderer) {
+            renderer.resize(windowWidth, windowHeight);
+            if (animatePlayer) animatePlayer.resize();
         }
     }
     function e(n, a) {
         a = vocalPlayer.length + trackPlayer.length;
-        if (b == 1) {
+        if (pageFlag == 1) {
             n += trackPlayer.length;
         }
         var e = (a <= 0) ? "0%" : Math.round(n / a * 100) + "%";
         $("#scene_loading hr").css("width", e);
     }
     function t() {
-        if (++b == 1) {
+        if (++pageFlag == 1) {
             vocalPlayer.init(t, e);
-        } else if (b == 2) {
-            i();
+        } else if (pageFlag == 2) {
+            playStart();
         }
     }
-    function i() {
-        x = 1;
+    function playStart() {
+        sceneFlag = 1;
         $("#scene_loading hr").css("display", "none");
         $("#scene_loading hr").css("width", 0);
         $("#scene_loading").stop().fadeOut(200, "linear");
         if (p) { 
             $("#scene_loading").stop().css("display", "none");
             $("#bt_back").stop().css("display", "none");
-            if (B) $("#bt_fs").stop().css("display", "none");
+            if (enableFullscreen) $("#bt_fs").stop().css("display", "none");
             $("#scene_main .set").stop().css("display", "none");
         } else {
             $("#scene_main").stop().fadeIn(200, "linear");
         }
-        m = aidn.___waContext.currentTime;
-        g.start();
+        lastTime = aidn.___waContext.currentTime;
+        animatePlayer.start();
         trackPlayer.start();
     }
     function onFeedbackClick(n) {
-        if (U = !U) {
+        if (settingsFeedback = !settingsFeedback) {
             $("#bt_feedback a").text("反馈: 开启");
             aidn.util.setCookie("fb", "on", 2592e3);
         } else {
@@ -54,7 +54,7 @@ var MainManager = function() {
         if (n) n.preventDefault();
     }
     function onBgMusicClick(n) {
-        if (T = !T) {
+        if (settingsBackgroundTrack = !settingsBackgroundTrack) {
             $("#bt_backtrack a").text("背景音乐: 开启");
             aidn.util.setCookie("bt", "on", 2592e3);
         } else {
@@ -65,9 +65,9 @@ var MainManager = function() {
     }
     function r() {
         trackPlayer.update();
-        if (1 == x && --D < 0) v();
-        if (p && 1 == x) {
-            var n = 1e3 * (aidn.___waContext.currentTime - m);
+        if (1 == sceneFlag && --D < 0) v();
+        if (p && 1 == sceneFlag) {
+            var n = 1e3 * (aidn.___waContext.currentTime - lastTime);
             if (l * s < n) {
                 var a = Math.floor(n / s) + 1;
                 h += a - l;
@@ -95,12 +95,12 @@ var MainManager = function() {
                             f = 0;
                             aidn.util.shuffleArray(c);
                         }
-                        g.changeId(d, 0, !0);
+                        animatePlayer.changeId(d, 0, !0);
                     }
                 }
             }
         }
-        I.render(z);
+        renderer.render(renderContainer);
         window.requestAnimFrame(r);
     }
     this.init = function() {
@@ -111,14 +111,14 @@ var MainManager = function() {
             } catch (n) {}
             var n = 1;
             if (window.devicePixelRatio >= 2) n = 2;
-            (I = PIXI.autoDetectRenderer(G, A, {
+            (renderer = PIXI.autoDetectRenderer(windowWidth, windowHeight, {
                 backgroundColor: 16756655,
                 antialias: !1,
                 resolution: n
             })).autoDensity = !0;
-            document.getElementById("view").appendChild(I.view);
-            z = new PIXI.Container;
-            g.init();
+            document.getElementById("view").appendChild(renderer.view);
+            renderContainer = new PIXI.Container;
+            animatePlayer.init();
             a();
             $("#scene_top").fadeIn(300);
             r();
@@ -131,15 +131,15 @@ var MainManager = function() {
         if (!p && !S) {
             S = !0;
             $("#bt_back").stop().fadeIn(200, "linear");
-            if (B) $("#bt_fs").stop().fadeIn(200, "linear");
+            if (enableFullscreen) $("#bt_fs").stop().fadeIn(200, "linear");
             $("#scene_main .set").stop().fadeIn(200, "linear");
         }
     }
-    var p = !1;
-    if (aidn.util.getQuery().auto == 1) p = !0;
-    aidn.util.needExpandArea(!0);
-    var B = aidn.util.enabledFullscreen();
-    if (B) {
+    var p = false;
+    if (aidn.util.getQuery().auto == 1) p = true;
+    aidn.util.needExpandArea(true);
+    var enableFullscreen = aidn.util.enabledFullscreen();
+    if (enableFullscreen) {
         $("#bt_fs").css("display", "block");
         $("#bt_fs").click(function(n) {
             aidn.util.fullscreen();
@@ -148,8 +148,8 @@ var MainManager = function() {
     $("#bt_start a").click(function(n) {
         $("#scene_top").stop().fadeOut(200, "linear");
         $("#scene_loading").stop().fadeIn(200, "linear");
-        if (b == 2) {
-            i();
+        if (pageFlag == 2) {
+            playStart();
         } else {
             (new aidn.WebAudio).load("");
             trackPlayer.init(t, e);
@@ -178,13 +178,13 @@ var MainManager = function() {
         $("#about_cover").stop().fadeOut(200, "linear");
     });
     $("#bt_back").click(function() {
-        switch (x) {
+        switch (sceneFlag) {
         case 1:
-            x = 0;
+            sceneFlag = 0;
             try {
                 aidn.adv.show();
             } catch (n) {}
-            g.end();
+            animatePlayer.end();
             trackPlayer.end();
             $("#scene_top").stop().fadeIn(100, "linear");
             $("#scene_loading").stop().fadeOut(100, "linear");
@@ -197,9 +197,10 @@ var MainManager = function() {
     });
     $("#bt_feedback a").click(onFeedbackClick);
     $("#bt_backtrack a").click(onBgMusicClick);
-    var G, A, isJapanese = aidn.util.checkJapanese(), isMobile = aidn.util.checkMobile();
+    var windowWidth, windowHeight, isMobile = aidn.util.checkMobile();
     var bpm = 140;
-    var m, I, z, b = 0, x = 0, trackPlayer = new function() {
+    var lastTime, renderer, renderContainer, pageFlag = 0, sceneFlag = 0;
+    var trackPlayer = new function() {
         function t() {
             if (c) c()
         }
@@ -218,10 +219,10 @@ var MainManager = function() {
         };
         this.update = function() {
             if (!playing) return;
-            var n = 1e3 * (aidn.___waContext.currentTime - m);
+            var n = 1e3 * (aidn.___waContext.currentTime - lastTime);
             if (progress * gapTime < n) {
                 var a = (progress = Math.floor(n / gapTime) + 1) * gapTime - n;
-                if (0 <= a && T) {
+                if (0 <= a && settingsBackgroundTrack) {
                     for (var e = (progress - 1) % trackLength, t = tracks.length, i = 0; i < t; i++) {
                         var note = tracks[i][e];
                         if (note >= 0) {
@@ -269,8 +270,8 @@ var MainManager = function() {
             }
         }
         var c, f, trackLength = tracks[DRUMS].length, progress = 0, gapTime = 6e4 / bpm / 2
-    }
-    , vocalPlayer = new function() {
+    };
+    var vocalPlayer = new function() {
         var audioPlayer, r = -1, l = -1;
         function t() {
             if (c) c();
@@ -288,7 +289,7 @@ var MainManager = function() {
             audioPlayer.load("data/main/main.json", a, t, i);
         };
         this.play = function(n, a) {
-            var e = 1e3 * (aidn.___waContext.currentTime + h[n] - m);
+            var e = 1e3 * (aidn.___waContext.currentTime + h[n] - lastTime);
             var t = Math.floor(e / gapTime);
             if (t == r && l >= 0) {
                 audioPlayer.stop(l);
@@ -322,8 +323,8 @@ var MainManager = function() {
             d[n] *= 1.2;
         }
         var c, e, gapTime = 6e4 / bpm / 2;
-    }
-    , g = new function() {
+    };
+    var animatePlayer = new function() {
         var s = function(n, a) {
             this.id = n,
             this.setPosition = function(n, a) {
@@ -341,7 +342,7 @@ var MainManager = function() {
             }
             ,
             this.play = function() {
-                U && gsap.fromTo(r, .5, {
+                settingsFeedback && gsap.fromTo(r, .5, {
                     alpha: .7
                 }, {
                     alpha: 0,
@@ -365,7 +366,7 @@ var MainManager = function() {
             function a() {
                 o.clear(),
                 o.beginFill(16777215),
-                o.drawRect(0, 0, G, A)
+                o.drawRect(0, 0, windowWidth, windowHeight)
             }
             function e() {
                 t.resize()
@@ -373,7 +374,7 @@ var MainManager = function() {
             this.resize = function() {
                 o.clear(),
                 o.beginFill(i),
-                o.drawRect(0, 0, G, A)
+                o.drawRect(0, 0, windowWidth, windowHeight)
             }
             ,
             this.flash = function() {
@@ -486,10 +487,10 @@ var MainManager = function() {
                 function() {
                     y.setChildIndex(w, y.children.length - 1),
                     w.visible = !0,
-                    w.x = G / 2,
-                    w.y = A / 2,
+                    w.x = windowWidth / 2,
+                    w.y = windowHeight / 2,
                     u = L();
-                    var n, a = Math.min(G, A) * (.32 * Math.random() + .16), e = Math.floor(5 * Math.random()) + 3;
+                    var n, a = Math.min(windowWidth, windowHeight) * (.32 * Math.random() + .16), e = Math.floor(5 * Math.random()) + 3;
                     p = e,
                     v = 5 * Math.random() + 3,
                     w.clear(),
@@ -583,10 +584,10 @@ var MainManager = function() {
                 function() {
                     p.setChildIndex(y, p.children.length - 1),
                     y.visible = !0,
-                    y.x = G / 2,
-                    y.y = A / 2,
+                    y.x = windowWidth / 2,
+                    y.y = windowHeight / 2,
                     y.rotation = .5 * Math.PI * Math.floor(4 * Math.random());
-                    for (var n, a = Math.floor(7 * Math.random() + 2), e = .8 * Math.min(G, A), t = (v.size = e) / a * (.4 * Math.random() + .7), i = e / a * (.4 * Math.random() + .1), o = L(), r = 0, l = 0; l <= a; l++) {
+                    for (var n, a = Math.floor(7 * Math.random() + 2), e = .8 * Math.min(windowWidth, windowHeight), t = (v.size = e) / a * (.4 * Math.random() + .7), i = e / a * (.4 * Math.random() + .1), o = L(), r = 0, l = 0; l <= a; l++) {
                         var s = (l - .5 * a) * t
                           , d = {
                             x: -e / 2,
@@ -656,7 +657,7 @@ var MainManager = function() {
             D = 90,
             S && (S = !1,
             $("#bt_back").stop().fadeOut(200, "linear"),
-            B && $("#bt_fs").stop().fadeOut(200, "linear"),
+            enableFullscreen && $("#bt_fs").stop().fadeOut(200, "linear"),
             $("#scene_main .set").stop().fadeOut(200, "linear")),
             --x <= 0 && (i = (t = Math.floor(I.length * Math.random())) + m.length,
             (C[i].length ? C[i].pop() : new I[t](b,i)).play(),
@@ -669,9 +670,9 @@ var MainManager = function() {
                 var n = 0
                   , a = v
                   , e = p;
-                A < G && (a = p,
+                windowHeight < windowWidth && (a = p,
                 e = v);
-                for (var t = G / a, i = A / e, o = 0; o < e; o++)
+                for (var t = windowWidth / a, i = windowHeight / e, o = 0; o < e; o++)
                     for (var r = 0; r < a; r++) {
                         var l;
                         M[n] ? l = M[n] : (l = new s(n,f),
@@ -687,9 +688,9 @@ var MainManager = function() {
         this.init = function() {
             w = !0,
             b = new PIXI.Container,
-            z.addChild(b),
+            renderContainer.addChild(b),
             f = new PIXI.Container,
-            z.addChild(f),
+            renderContainer.addChild(f),
             (T = new n(b)).setColor(8965324, 0)
         }
         ,
@@ -729,9 +730,9 @@ var MainManager = function() {
                 this.play = function(n, a, e) {
                     s.visible = !0,
                     s.clear();
-                    var t = G * Math.random()
-                      , i = A * Math.random()
-                      , o = Math.min(G, A) * (.03 * Math.random() + .02);
+                    var t = windowWidth * Math.random()
+                      , i = windowHeight * Math.random()
+                      , o = Math.min(windowWidth, windowHeight) * (.03 * Math.random() + .02);
                     s.lineStyle(3 * Math.random() + 3, e),
                     s.drawCircle(0, 0, o),
                     s.x = n,
@@ -767,7 +768,7 @@ var MainManager = function() {
                 !function() {
                     h.setChildIndex(f, h.children.length - 1),
                     f.visible = !0;
-                    for (var n = 5 * Math.random() + 7, a = 0, e = G / 2, t = A / 2, i = L(), o = 0; o < n; o++) {
+                    for (var n = 5 * Math.random() + 7, a = 0, e = windowWidth / 2, t = windowHeight / 2, i = L(), o = 0; o < n; o++) {
                         var r;
                         r = c[o] ? c[o] : new s(f);
                         var l = (c[o] = r).play(e, t, i);
@@ -792,9 +793,9 @@ var MainManager = function() {
                 this.play = function(n, a, e) {
                     s.visible = !0,
                     s.clear();
-                    var t = G * Math.random()
-                      , i = A * Math.random()
-                      , o = Math.min(G, A) * (.04 * Math.random() + .02);
+                    var t = windowWidth * Math.random()
+                      , i = windowHeight * Math.random()
+                      , o = Math.min(windowWidth, windowHeight) * (.04 * Math.random() + .02);
                     s.beginFill(e),
                     s.drawRect(-o / 2, -o / 2, o, o),
                     s.x = n,
@@ -830,7 +831,7 @@ var MainManager = function() {
                 !function() {
                     h.setChildIndex(f, h.children.length - 1),
                     f.visible = !0;
-                    for (var n = 5 * Math.random() + 7, a = 0, e = G / 2, t = A / 2, i = L(), o = 0; o < n; o++) {
+                    for (var n = 5 * Math.random() + 7, a = 0, e = windowWidth / 2, t = windowHeight / 2, i = L(), o = 0; o < n; o++) {
                         var r;
                         r = c[o] ? c[o] : new s(f);
                         var l = (c[o] = r).play(e, t, i);
@@ -896,10 +897,10 @@ var MainManager = function() {
                 !function() {
                     f.setChildIndex(v, f.children.length - 1),
                     v.visible = !0,
-                    v.x = G / 2,
-                    v.y = A / 2,
+                    v.x = windowWidth / 2,
+                    v.y = windowHeight / 2,
                     v.rotation = Math.random() * Math.PI * 2;
-                    for (var n = 10, a = L(), e = Math.min(G, A) / 64 * (.6 * Math.random() + .7), t = 2, i = 0; i < 40; i++) {
+                    for (var n = 10, a = L(), e = Math.min(windowWidth, windowHeight) / 64 * (.6 * Math.random() + .7), t = 2, i = 0; i < 40; i++) {
                         var o, r = 25 * i * Math.PI / 180, l = n * Math.cos(r), s = n * Math.sin(r);
                         n += e,
                         t += .22,
@@ -954,10 +955,10 @@ var MainManager = function() {
                 !function() {
                     c.setChildIndex(f, c.children.length - 1),
                     f.visible = !0,
-                    f.x = G / 2,
-                    f.y = A / 2;
+                    f.x = windowWidth / 2,
+                    f.y = windowHeight / 2;
                     var n = L()
-                      , a = Math.min(G, A) * (.28 * Math.random() + .2)
+                      , a = Math.min(windowWidth, windowHeight) * (.28 * Math.random() + .2)
                       , e = Math.floor(5 * Math.random()) + 3;
                     u.clear(),
                     u.lineStyle(7 * Math.random() + 4, n, 1),
@@ -994,7 +995,7 @@ var MainManager = function() {
         , function(n, a) {
             var i = function(n) {
                 function e() {
-                    var n = Math.min(G, A)
+                    var n = Math.min(windowWidth, windowHeight)
                       , a = n * (.08 * Math.random() + .05);
                     l.lineStyle(4 * Math.random() + 4, L()),
                     l.drawRect(-a / 2, -a / 2, a, a),
@@ -1017,7 +1018,7 @@ var MainManager = function() {
                     })
                 }
                 function t() {
-                    var n = Math.min(G, A)
+                    var n = Math.min(windowWidth, windowHeight)
                       , a = o + n / 2 * (Math.random() - .5)
                       , e = r + n / 2 * (Math.random() - .5);
                     gsap.to(l, .5, {
@@ -1041,8 +1042,8 @@ var MainManager = function() {
                 this.play = function(n, a) {
                     l.visible = !0,
                     l.clear(),
-                    o = G * Math.random(),
-                    r = A * Math.random(),
+                    o = windowWidth * Math.random(),
+                    r = windowHeight * Math.random(),
                     gsap.delayedCall(n, e)
                 }
                 ;
@@ -1078,7 +1079,7 @@ var MainManager = function() {
         , function(n, a) {
             var i = function(n) {
                 function e() {
-                    var n = Math.min(G, A) * (.05 * Math.random() + .014);
+                    var n = Math.min(windowWidth, windowHeight) * (.05 * Math.random() + .014);
                     l.beginFill(L()),
                     l.drawCircle(0, 0, n),
                     l.x = i,
@@ -1107,8 +1108,8 @@ var MainManager = function() {
                 this.play = function(n, a) {
                     l.visible = !0,
                     l.clear(),
-                    i = G * Math.random(),
-                    o = A * Math.random(),
+                    i = windowWidth * Math.random(),
+                    o = windowHeight * Math.random(),
                     gsap.delayedCall(n, e)
                 }
                 ;
@@ -1153,8 +1154,8 @@ var MainManager = function() {
                     d.container.mask = s,
                     d.play(o);
                     var n = d.size / 2;
-                    s.x = G / 2,
-                    s.y = A / 2,
+                    s.x = windowWidth / 2,
+                    s.y = windowHeight / 2,
                     s.clear(),
                     s.beginFill(0),
                     s.drawCircle(0, 0, n);
@@ -1207,9 +1208,9 @@ var MainManager = function() {
                     c.clear(),
                     c.visible = !0,
                     c.lineStyle(5 * Math.random() + 3, L(), 1),
-                    c.x = G / 2,
-                    c.y = A / 2;
-                    for (var n = .6 * Math.min(G, A), a = Math.floor(5 * Math.random()) + 3, e = 360 / a, t = .5 * Math.max(G, A) / n * (1.6 + .6 / a), i = 0; i <= a; i++) {
+                    c.x = windowWidth / 2,
+                    c.y = windowHeight / 2;
+                    for (var n = .6 * Math.min(windowWidth, windowHeight), a = Math.floor(5 * Math.random()) + 3, e = 360 / a, t = .5 * Math.max(windowWidth, windowHeight) / n * (1.6 + .6 / a), i = 0; i <= a; i++) {
                         var o = i * e * Math.PI / 180
                           , r = n * Math.cos(o)
                           , l = n * Math.sin(o);
@@ -1249,10 +1250,10 @@ var MainManager = function() {
                 !function() {
                     i.setChildIndex(o, i.children.length - 1),
                     o.visible = !0,
-                    o.x = G / 2,
-                    o.y = A / 2;
+                    o.x = windowWidth / 2,
+                    o.y = windowHeight / 2;
                     var n = L()
-                      , a = Math.min(G, A) * (.25 * Math.random() + .1);
+                      , a = Math.min(windowWidth, windowHeight) * (.25 * Math.random() + .1);
                     r.clear(),
                     r.beginFill(n),
                     r.drawCircle(0, 0, a),
@@ -1341,10 +1342,10 @@ var MainManager = function() {
                 !function() {
                     p.setChildIndex(y, p.children.length - 1),
                     y.visible = !0,
-                    y.x = G / 2,
-                    y.y = A / 2;
+                    y.x = windowWidth / 2,
+                    y.y = windowHeight / 2;
                     var n = Math.floor(8 * Math.random() + 6)
-                      , a = Math.min(G, A) * (.25 * Math.random() + .25)
+                      , a = Math.min(windowWidth, windowHeight) * (.25 * Math.random() + .25)
                       , e = 360 / n
                       , t = a * (.15 * Math.random() + .05)
                       , i = L()
@@ -1373,7 +1374,7 @@ var MainManager = function() {
         , function(n, a) {
             var u = function(n) {
                 function e() {
-                    var n = .5 * G
+                    var n = .5 * windowWidth
                       , a = l.x + Math.random() * n - n / 2
                       , e = l.y + Math.random() * n - n / 2;
                     gsap.to(l.scale, .3, {
@@ -1431,10 +1432,10 @@ var MainManager = function() {
                 !function() {
                     p.setChildIndex(y, p.children.length - 1),
                     y.visible = !0,
-                    y.x = G / 2,
-                    y.y = A / 2;
+                    y.x = windowWidth / 2,
+                    y.y = windowHeight / 2;
                     var n = Math.floor(8 * Math.random() + 6)
-                      , a = Math.min(G, A) * (.2 * Math.random() + .25)
+                      , a = Math.min(windowWidth, windowHeight) * (.2 * Math.random() + .25)
                       , e = 360 / n
                       , t = a * (.2 * Math.random() + .05)
                       , i = L()
@@ -1469,9 +1470,9 @@ var MainManager = function() {
                 !function() {
                     r.visible = !0,
                     o.setChildIndex(r, o.children.length - 1),
-                    r.x = .2 * G + .6 * G * Math.random(),
-                    r.y = .2 * A + .6 * A * Math.random();
-                    var n, a = Math.min(G, A) * (.7 + .2 * Math.random()), e = a / 10 * (.5 + .8 * Math.random()), t = L();
+                    r.x = .2 * windowWidth + .6 * windowWidth * Math.random(),
+                    r.y = .2 * windowHeight + .6 * windowHeight * Math.random();
+                    var n, a = Math.min(windowWidth, windowHeight) * (.7 + .2 * Math.random()), e = a / 10 * (.5 + .8 * Math.random()), t = L();
                     l.clear(),
                     l.beginFill(t),
                     l.drawRect(0, -e / 2, a, e),
@@ -1562,25 +1563,25 @@ var MainManager = function() {
                     u.visible = !0,
                     Math.random() < .5 ? (u.x = 0,
                     u.y = 0,
-                    u.rotation = 0) : (u.x = G,
-                    u.y = A,
+                    u.rotation = 0) : (u.x = windowWidth,
+                    u.y = windowHeight,
                     u.rotation = Math.PI),
                     c = l = 0,
                     r = Math.floor(3 * Math.random()) + 3,
                     s = 20 * Math.random() + 2,
                     d = L();
                     var n, a = Math.random() < .5;
-                    n = a ? G / r : A / r;
+                    n = a ? windowWidth / r : windowHeight / r;
                     for (var e = 0; e <= r; e++) {
                         var t;
                         a ? (t = {
                             x: e * n,
-                            y: A * Math.random()
+                            y: windowHeight * Math.random()
                         },
                         0 == e && (t.x -= 10),
                         e == r && (t.x += 10)) : (t = {
                             y: e * n,
-                            x: G * Math.random()
+                            x: windowWidth * Math.random()
                         },
                         0 == e && (t.y -= 10),
                         e == r && (t.y += 10)),
@@ -1635,28 +1636,28 @@ var MainManager = function() {
                       , e = Math.floor(4 * Math.random()) + 1;
                     u.pos = {};
                     var t = 0;
-                    a ? (t = A / e,
+                    a ? (t = windowHeight / e,
                     u.pos.b0 = {
                         x: 0,
                         y: 0
                     },
                     u.pos.b1 = {
                         x: 0,
-                        y: A
-                    }) : (t = G / e,
+                        y: windowHeight
+                    }) : (t = windowWidth / e,
                     u.pos.b0 = {
                         x: 0,
                         y: 0
                     },
                     u.pos.b1 = {
-                        x: G,
+                        x: windowWidth,
                         y: 0
                     }),
                     Math.random() < .5 ? (y.rotation = 0,
                     y.x = 0,
                     y.y = 0) : (y.rotation = Math.PI,
-                    y.x = G,
-                    y.y = A);
+                    y.x = windowWidth,
+                    y.y = windowHeight);
                     for (var i = f = 0; i <= e; i++) {
                         var o = {
                             x: 0,
@@ -1669,9 +1670,9 @@ var MainManager = function() {
                         var l, s = .4 * Math.random() + .3;
                         f = 2,
                         l = a ? {
-                            x: G
+                            x: windowWidth
                         } : {
-                            y: A
+                            y: windowHeight
                         },
                         gsap.to(u.pos["p" + i], s, l)
                     }
@@ -1712,20 +1713,24 @@ var MainManager = function() {
             return a
         }
         var F = 0
+    };
+    var S = !1, D = 0;
+    var settingsFeedback = "off" == aidn.util.getCookie("fb");
+    var settingsBackgroundTrack = "off" == aidn.util.getCookie("bt");
+    onFeedbackClick();
+    onBgMusicClick();
+    if (aidn.util.webaudio) {
+        $("#ng").css("display", "none");
+        $(".ok").css("display", "block");
+        if (isMobile) $("#scene_main .attention").html("点按 &amp; 划动!");
+    } else {
+        $("#ng").css("display", "block");
+        $(".ok").css("display", "none");
     }
-    , S = !1, D = 0, U = "off" == aidn.util.getCookie("fb"), T = "off" == aidn.util.getCookie("bt");
-    onFeedbackClick(),
-    onBgMusicClick(),
-    aidn.util.webaudio ? ($("#ng").css("display", "none"),
-    $(".ok").css("display", "block"),
-    isMobile && $("#scene_main .attention").html("点按 &amp; 划动!"),
-    isJapanese || $("#scene_top .attention").text("※ 调高你的音量并享受吧！")) : ($("#ng").css("display", "block"),
-    $(".ok").css("display", "none"),
-    isJapanese || $("#ng .atten").html("十分抱歉，<br>您的浏览器并不支持本页面需要的特性")),
-    PIXI.utils._saidHello = !0,
-    aidn.window.resize(a)
-}
-  , WebAudioManager = function() {
+    PIXI.utils._saidHello = true;
+    aidn.window.resize(a);
+};
+var WebAudioManager = function() {
     function i() {
         manager.now = ++a;
         if (s && s(a, size), size <= a) {
