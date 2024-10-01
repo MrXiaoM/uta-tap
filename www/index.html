@@ -50,8 +50,23 @@
   <div id="select">
     <div id="select_in">
       <p class="close"><span id="bt_close">×</span></p>
-      <p class="con">选择歌姬/背景音轨</p>
-      <p class="con">(页面制作中)</p>
+      <div class="split">
+        <div class="container_vocal">
+          <p class="con">选择歌姬</p>
+          <ul id="vocals"></ul>
+          <div class="custom">
+            <input type="file" id="file_vocal">
+          </div>
+        </div>
+        <hr />
+        <div class="container_tracks">
+          <p class="con">选择背景音轨</p>
+          <ul id="tracks"></ul>
+          <div class="custom">
+            <input type="file" id="file_music">
+          </div>
+        </div>
+      </div>
     </div>
   </div>
   <div id="about_cover"></div>

@@ -204,6 +204,89 @@ var MainManager = function() {
     });
     $("#bt_feedback a").click(onFeedbackClick);
     $("#bt_backtrack a").click(onBgMusicClick);
+    function updateSelectState(highlight) {
+        $('#tracks > li, #vocals > li, .custom').css({background: '', color: ''});
+        let style = {background: '#FFF', color: '#000'};
+        $('input[checked]').parent().css(style)
+        if (highlight) highlight.css(style);
+        if (currentTracksName == '*自定义*') {
+            $("#file_music").parent().css(style);
+        }
+        if (currentVocalName == "*自定义*") {
+            $("#file_vocal").parent().css(style);
+        }
+    }
+    function loadSelectList() {
+        fetch("data/music.txt", {cache: "no-store"})
+		.then(resp => resp.status == 200 ? resp.text() : null).then(text => {
+            var tracks = $("#tracks");
+            tracks[0].innerHTML = "";
+            var lines = text.split('\n')
+            for (var i in lines) {
+                var str = lines[i].replace('.json', '');
+                if (str.trim().length > 0) {
+                    var checked = currentTracksName == str ? " checked" : "";
+                    tracks.append(
+`<li>
+    <input type="radio" name="tracks" id="${str}" value="${str}"${checked}>
+    <label for="${str}">${str}</label>
+</li>`);
+                }
+            }
+            updateSelectState(null);
+            $('input[name="tracks"]').change(function() {
+                let selectedValue = $(this).val();
+                loadMusicTracksFromName(selectedValue);
+                updateSelectState($(this));
+            });
+        });
+        fetch("data/vocal.txt", {cache: "no-store"})
+		.then(resp => resp.status == 200 ? resp.text() : null).then(text => {
+            var vocals = $("#vocals");
+            vocals[0].innerHTML = "";
+            var lines = text.split('\n')
+            for (var i in lines) {
+                var str = lines[i].replace('.json', '');
+                if (str.trim().length > 0) {
+                    var checked = currentVocalName == str ? " checked" : "";
+                    vocals.append(
+`<li>
+    <input type="radio" name="vocals" id="${str}" value="${str}"${checked}>
+    <label for="${str}">${str}</label>
+</li>`);
+                }
+            }
+            updateSelectState(null);
+            $('input[name="vocals"]').change(function() {
+                let selectedValue = $(this).val();
+                loadVocalFromName(selectedValue);
+                updateSelectState($(this));
+            });
+        });
+    }
+    loadSelectList();
+    $("#file_music").on('change', function() {
+        var file = $(this).prop('files')[0];
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            $('input[name="tracks"]').removeAttr('checked');
+            var content = e.target.result;
+            loadMusicTracksFromJson(content);
+            updateSelectState();
+        };
+        reader.readAsText(file);
+    });
+    $("#file_vocal").on('change', function() {
+        var file = $(this).prop('files')[0];
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            $('input[name="vocals"]').removeAttr('checked');
+            var content = e.target.result;
+            loadVocalFromJson(content);
+            updateSelectState();
+        };
+        reader.readAsText(file);
+    });
     var windowWidth, windowHeight, isMobile = aidn.util.checkMobile();
     var bpm = 140;
     var lastTime, renderer, renderContainer, pageFlag = 0, sceneFlag = 0;
