@@ -3,7 +3,7 @@ $(function() {
 });
 var MainManager = function() {
     aidn.util.useDummyDiv();
-    function a() {
+    function onWindowResize() {
         windowWidth = aidn.window.width();
         windowHeight = aidn.window.height();
         if (renderer) {
@@ -11,7 +11,7 @@ var MainManager = function() {
             if (animatePlayer) animatePlayer.resize();
         }
     }
-    function e(n, a) {
+    function loadingCallback(n, a) {
         a = vocalPlayer.length + trackPlayer.length;
         if (pageFlag == 1) {
             n += trackPlayer.length;
@@ -21,7 +21,7 @@ var MainManager = function() {
     }
     function t() {
         if (++pageFlag == 1) {
-            vocalPlayer.init(t, e);
+            vocalPlayer.init(t, loadingCallback);
         } else if (pageFlag == 2) {
             playStart();
         }
@@ -31,7 +31,7 @@ var MainManager = function() {
         $("#scene_loading hr").css("display", "none");
         $("#scene_loading hr").css("width", 0);
         $("#scene_loading").stop().fadeOut(200, "linear");
-        if (p) { 
+        if (autoRandomPlayMode) { 
             $("#scene_loading").stop().css("display", "none");
             $("#bt_back").stop().css("display", "none");
             if (enableFullscreen) $("#bt_fs").stop().css("display", "none");
@@ -43,7 +43,7 @@ var MainManager = function() {
         animatePlayer.start();
         trackPlayer.start();
     }
-    function onFeedbackClick(n) {
+    function onFeedbackClick(event) {
         if (settingsFeedback = !settingsFeedback) {
             $("#bt_feedback a").text("反馈: 开启");
             aidn.util.setCookie("fb", "on", 2592e3);
@@ -51,9 +51,9 @@ var MainManager = function() {
             $("#bt_feedback a").text("反馈: 关闭");
             aidn.util.setCookie("fb", "off", 2592e3);
         }
-        if (n) n.preventDefault();
+        if (event) event.preventDefault();
     }
-    function onBgMusicClick(n) {
+    function onBgMusicClick(event) {
         if (settingsBackgroundTrack = !settingsBackgroundTrack) {
             $("#bt_backtrack a").text("背景音乐: 开启");
             aidn.util.setCookie("bt", "on", 2592e3);
@@ -61,12 +61,14 @@ var MainManager = function() {
             $("#bt_backtrack a").text("背景音乐: 关闭");
             aidn.util.setCookie("bt", "off", 2592e3);
         }
-        if (n) n.preventDefault();
+        if (event) event.preventDefault();
     }
-    function r() {
+    function update() {
         trackPlayer.update();
-        if (1 == sceneFlag && --D < 0) v();
-        if (p && 1 == sceneFlag) {
+        if (sceneFlag == 1 && --D < 0) {
+            showIdleScreen();
+        }
+        if (sceneFlag == 1 && autoRandomPlayMode) {
             var n = 1e3 * (aidn.___waContext.currentTime - lastTime);
             if (l * s < n) {
                 var a = Math.floor(n / s) + 1;
@@ -101,7 +103,7 @@ var MainManager = function() {
             }
         }
         renderer.render(renderContainer);
-        window.requestAnimFrame(r);
+        window.requestAnimFrame(update);
     }
     this.init = function() {
         !function() {
@@ -119,24 +121,24 @@ var MainManager = function() {
             document.getElementById("view").appendChild(renderer.view);
             renderContainer = new PIXI.Container;
             animatePlayer.init();
-            a();
+            onWindowResize();
             $("#scene_top").fadeIn(300);
-            r();
+            update();
         }()
     };
     for (var l = 0, s = 6e4 / 280, d = Math.floor(32 * Math.random()), h = 0, c = [], f = 0, u = 0; u < 32; u++) {
         c[u] = u;
     }
-    function v() {
-        if (!p && !S) {
+    function showIdleScreen() {
+        if (!autoRandomPlayMode && !S) {
             S = !0;
             $("#bt_back").stop().fadeIn(200, "linear");
             if (enableFullscreen) $("#bt_fs").stop().fadeIn(200, "linear");
             $("#scene_main .set").stop().fadeIn(200, "linear");
         }
     }
-    var p = false;
-    if (aidn.util.getQuery().auto == 1) p = true;
+    var autoRandomPlayMode = false;
+    if (aidn.util.getQuery().auto == 1) autoRandomPlayMode = true;
     aidn.util.needExpandArea(true);
     var enableFullscreen = aidn.util.enabledFullscreen();
     if (enableFullscreen) {
@@ -152,7 +154,7 @@ var MainManager = function() {
             playStart();
         } else {
             (new aidn.WebAudio).load("");
-            trackPlayer.init(t, e);
+            trackPlayer.init(t, loadingCallback);
         }
         try {
             aidn.adv.hide();
@@ -189,7 +191,7 @@ var MainManager = function() {
             $("#scene_top").stop().fadeIn(100, "linear");
             $("#scene_loading").stop().fadeOut(100, "linear");
             $("#scene_main").stop().fadeOut(100, "linear");
-            v();
+            showIdleScreen();
             break;
         default:
             location.href = "https://www.mrxiaom.top/";
@@ -1728,7 +1730,7 @@ var MainManager = function() {
         $(".ok").css("display", "none");
     }
     PIXI.utils._saidHello = true;
-    aidn.window.resize(a);
+    aidn.window.resize(onWindowResize);
 };
 var WebAudioManager = function() {
     function i() {
