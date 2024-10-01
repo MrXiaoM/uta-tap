@@ -148,7 +148,7 @@ var MainManager = function() {
             v();
             break;
         default:
-            location.href = "https://github.com/HFIProgramming/mikutap/"
+            location.href = "https://www.mrxiaom.top/"
         }
     }),
     $("#bt_feedback a").click(n),
