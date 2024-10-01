@@ -230,9 +230,8 @@ a:hover {
     color: #000;
     font-weight: bold;
 }
-.custom {
-    padding-top: 8px;
-    border: dashed #FFF;
+.custom_dash {
+    border-style: dashed;
     border-width: 1px 0 0 0;
 }
 .custom > input[type="file"] {
