@@ -21,8 +21,9 @@ jobs:
           node-version: 18.x
       - name: deploy
         run: |
-          npm install uglify-js -g
+          npm install uglify-js uglifycss -g
           uglifyjs www/js/utatap.js -o www/js/utatap.js
+          uglifycss www/css/utatap.css > www/css/utatap.css
           rm data/README
           mkdir data/vocal data/music
           ls data/vocal>data/vocal.txt
