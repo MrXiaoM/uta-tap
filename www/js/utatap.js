@@ -4,233 +4,272 @@ $(function() {
 var MainManager = function() {
     aidn.util.useDummyDiv();
     function a() {
-        G = aidn.window.width(),
-        A = aidn.window.height(),
-        I && (I.resize(G, A),
-        g && g.resize())
+        G = aidn.window.width();
+        A = aidn.window.height();
+        if (I) {
+            I.resize(G, A);
+            if (g) g.resize();
+        }
     }
     function e(n, a) {
-        a = R.length + C.length,
-        1 == b && (n += C.length);
-        var e = Math.round(n / a * 100) + "%";
-        a <= 0 && (e = "0%"),
-        $("#scene_loading hr").css("width", e)
+        a = vocalPlayer.length + trackPlayer.length;
+        if (b == 1) {
+            n += trackPlayer.length;
+        }
+        var e = (a <= 0) ? "0%" : Math.round(n / a * 100) + "%";
+        $("#scene_loading hr").css("width", e);
     }
     function t() {
-        1 == ++b ? R.init(t, e) : 2 == b && i()
+        if (++b == 1) {
+            vocalPlayer.init(t, e);
+        } else if (b == 2) {
+            i();
+        }
     }
     function i() {
-        x = 1,
-        $("#scene_loading hr").css("display", "none"),
-        $("#scene_loading hr").css("width", 0),
-        $("#scene_loading").stop().fadeOut(200, "linear"),
-        p ? ($("#scene_loading").stop().css("display", "none"),
-        $("#bt_back").stop().css("display", "none"),
-        B && $("#bt_fs").stop().css("display", "none"),
-        $("#scene_main .set").stop().css("display", "none")) : $("#scene_main").stop().fadeIn(200, "linear"),
-        m = aidn.___waContext.currentTime,
-        g.start(),
-        C.start()
+        x = 1;
+        $("#scene_loading hr").css("display", "none");
+        $("#scene_loading hr").css("width", 0);
+        $("#scene_loading").stop().fadeOut(200, "linear");
+        if (p) { 
+            $("#scene_loading").stop().css("display", "none");
+            $("#bt_back").stop().css("display", "none");
+            if (B) $("#bt_fs").stop().css("display", "none");
+            $("#scene_main .set").stop().css("display", "none");
+        } else {
+            $("#scene_main").stop().fadeIn(200, "linear");
+        }
+        m = aidn.___waContext.currentTime;
+        g.start();
+        trackPlayer.start();
     }
     function onFeedbackClick(n) {
-        (U = !U) ? ($("#bt_feedback a").text("反馈: 开启"),
-        aidn.util.setCookie("fb", "on", 2592e3)) : ($("#bt_feedback a").text("反馈: 关闭"),
-        aidn.util.setCookie("fb", "off", 2592e3)),
-        n && n.preventDefault()
+        if (U = !U) {
+            $("#bt_feedback a").text("反馈: 开启");
+            aidn.util.setCookie("fb", "on", 2592e3);
+        } else {
+            $("#bt_feedback a").text("反馈: 关闭");
+            aidn.util.setCookie("fb", "off", 2592e3);
+        }
+        if (n) n.preventDefault();
     }
     function onBgMusicClick(n) {
-        (T = !T) ? ($("#bt_backtrack a").text("背景音乐: 开启"),
-        aidn.util.setCookie("bt", "on", 2592e3)) : ($("#bt_backtrack a").text("背景音乐: 关闭"),
-        aidn.util.setCookie("bt", "off", 2592e3)),
-        n && n.preventDefault()
+        if (T = !T) {
+            $("#bt_backtrack a").text("背景音乐: 开启");
+            aidn.util.setCookie("bt", "on", 2592e3);
+        } else {
+            $("#bt_backtrack a").text("背景音乐: 关闭");
+            aidn.util.setCookie("bt", "off", 2592e3);
+        }
+        if (n) n.preventDefault();
     }
     function r() {
-        C.update(),
-        1 == x && --D < 0 && v(),
-        function() {
-            if (!p)
-                return;
-            if (1 != x)
-                return;
+        trackPlayer.update();
+        if (1 == x && --D < 0) v();
+        if (p && 1 == x) {
             var n = 1e3 * (aidn.___waContext.currentTime - m);
             if (l * s < n) {
                 var a = Math.floor(n / s) + 1;
                 h += a - l;
                 var e = (l = a) * s - n;
                 if (0 <= e) {
-                    var t = Math.random()
-                      , i = 1;
-                    192 <= h ? h = 0 : 128 <= h ? (t < .7 && (i = 2),
-                    t < .5 && (i = 3)) : 64 <= h ? (t < .35 && (i = 2),
-                    t < .2 && (i = 3),
-                    t < .02 && (i = 0)) : 32 <= h ? (t < .35 && (i = 2),
-                    t < .24 && (i = 0)) : 0 <= h && t < .4 && (i = 0);
-                    for (var o = 0; o < i; o++)
-                        d = c[f],
-                        32 <= ++f && (f = 0,
-                        aidn.util.shuffleArray(c)),
-                        g.changeId(d, 0, !0)
+                    var t = Math.random(), i = 1;
+                    if (h >= 192) {
+                        h = 0;
+                    } else if (h >= 128) {
+                        if (t < 0.7) i = 2;
+                        if (t < 0.5) i = 3;
+                    } else if (h >= 64) {
+                        if (t < 0.35) i = 2;
+                        if (t < 0.2) i = 3;
+                        if (t < 0.02) i = 0;
+                    } else if (h >= 32) {
+                        if (t < 0.35) i = 2;
+                        if (t < 0.24) i = 0;
+                    } else if (h >= 0) {
+                        if (t < 0.4) i = 0;
+                    }
+                    for (var o = 0; o < i; o++) {
+                        d = c[f];
+                        if (++f >= 32) {
+                            f = 0;
+                            aidn.util.shuffleArray(c);
+                        }
+                        g.changeId(d, 0, !0);
+                    }
                 }
             }
-        }(),
-        I.render(z),
-        window.requestAnimFrame(r)
+        }
+        I.render(z);
+        window.requestAnimFrame(r);
     }
     this.init = function() {
         !function() {
             aidn.window.addDummyDiv();
             try {
-                aidn.adv.show()
+                aidn.adv.show();
             } catch (n) {}
             var n = 1;
-            2 <= window.devicePixelRatio && (n = 2);
+            if (window.devicePixelRatio >= 2) n = 2;
             (I = PIXI.autoDetectRenderer(G, A, {
                 backgroundColor: 16756655,
                 antialias: !1,
                 resolution: n
-            })).autoDensity = !0,
-            document.getElementById("view").appendChild(I.view),
-            z = new PIXI.Container,
-            g.init(),
-            a(),
-            $("#scene_top").fadeIn(300),
-            r()
+            })).autoDensity = !0;
+            document.getElementById("view").appendChild(I.view);
+            z = new PIXI.Container;
+            g.init();
+            a();
+            $("#scene_top").fadeIn(300);
+            r();
         }()
-    }
-    ;
-    for (var l = 0, s = 6e4 / 280, d = Math.floor(32 * Math.random()), h = 0, c = [], f = 0, u = 0; u < 32; u++)
+    };
+    for (var l = 0, s = 6e4 / 280, d = Math.floor(32 * Math.random()), h = 0, c = [], f = 0, u = 0; u < 32; u++) {
         c[u] = u;
+    }
     function v() {
-        p || S || (S = !0,
-        $("#bt_back").stop().fadeIn(200, "linear"),
-        B && $("#bt_fs").stop().fadeIn(200, "linear"),
-        $("#scene_main .set").stop().fadeIn(200, "linear"))
+        if (!p && !S) {
+            S = !0;
+            $("#bt_back").stop().fadeIn(200, "linear");
+            if (B) $("#bt_fs").stop().fadeIn(200, "linear");
+            $("#scene_main .set").stop().fadeIn(200, "linear");
+        }
     }
     var p = !1;
-    1 == aidn.util.getQuery().auto && (p = !0),
+    if (aidn.util.getQuery().auto == 1) p = !0;
     aidn.util.needExpandArea(!0);
     var B = aidn.util.enabledFullscreen();
-    B && ($("#bt_fs").css("display", "block"),
-    $("#bt_fs").click(function(n) {
-        aidn.util.fullscreen()
-    })),
+    if (B) {
+        $("#bt_fs").css("display", "block");
+        $("#bt_fs").click(function(n) {
+            aidn.util.fullscreen();
+        });
+    }
     $("#bt_start a").click(function(n) {
-        $("#scene_top").stop().fadeOut(200, "linear"),
-        $("#scene_loading").stop().fadeIn(200, "linear"),
-        2 == b ? i() : ((new aidn.WebAudio).load(""),
-        C.init(t, e));
+        $("#scene_top").stop().fadeOut(200, "linear");
+        $("#scene_loading").stop().fadeIn(200, "linear");
+        if (b == 2) {
+            i();
+        } else {
+            (new aidn.WebAudio).load("");
+            trackPlayer.init(t, e);
+        }
         try {
-            aidn.adv.hide()
+            aidn.adv.hide();
         } catch (n) {}
-        n.preventDefault()
-    }),
+        n.preventDefault();
+    });
     $("#bt_select a").click(function(n) {
-        $("#select").stop().fadeIn(200, "linear"),
-        $("#select_cover").stop().fadeIn(200, "linear"),
-        n.preventDefault()
-    }),
+        $("#select").stop().fadeIn(200, "linear");
+        $("#select_cover").stop().fadeIn(200, "linear");
+        n.preventDefault();
+    });
     $("#bt_close,#select_cover").click(function() {
-        $("#select").stop().fadeOut(200, "linear"),
-        $("#select_cover").stop().fadeOut(200, "linear")
-    }),
+        $("#select").stop().fadeOut(200, "linear");
+        $("#select_cover").stop().fadeOut(200, "linear");
+    });
     $("#bt_about a").click(function(n) {
-        $("#about").stop().fadeIn(200, "linear"),
-        $("#about_cover").stop().fadeIn(200, "linear"),
-        n.preventDefault()
-    }),
+        $("#about").stop().fadeIn(200, "linear");
+        $("#about_cover").stop().fadeIn(200, "linear");
+        n.preventDefault();
+    });
     $("#bt_close,#about_cover").click(function() {
-        $("#about").stop().fadeOut(200, "linear"),
-        $("#about_cover").stop().fadeOut(200, "linear")
-    }),
+        $("#about").stop().fadeOut(200, "linear");
+        $("#about_cover").stop().fadeOut(200, "linear");
+    });
     $("#bt_back").click(function() {
         switch (x) {
         case 1:
             x = 0;
             try {
-                aidn.adv.show()
+                aidn.adv.show();
             } catch (n) {}
-            g.end(),
-            C.end(),
-            $("#scene_top").stop().fadeIn(100, "linear"),
-            $("#scene_loading").stop().fadeOut(100, "linear"),
-            $("#scene_main").stop().fadeOut(100, "linear"),
+            g.end();
+            trackPlayer.end();
+            $("#scene_top").stop().fadeIn(100, "linear");
+            $("#scene_loading").stop().fadeOut(100, "linear");
+            $("#scene_main").stop().fadeOut(100, "linear");
             v();
             break;
         default:
-            location.href = "https://www.mrxiaom.top/"
+            location.href = "https://www.mrxiaom.top/";
         }
-    }),
-    $("#bt_feedback a").click(onFeedbackClick),
+    });
+    $("#bt_feedback a").click(onFeedbackClick);
     $("#bt_backtrack a").click(onBgMusicClick);
     var G, A, isJapanese = aidn.util.checkJapanese(), isMobile = aidn.util.checkMobile();
-    var m, I, z, b = 0, x = 0, C = new function() {
+    var m, I, z, b = 0, x = 0, trackPlayer = new function() {
         function t() {
-            c && c()
+            if (c) c()
         }
         function i(n, a) {
-            f && f(n, a)
+            if (f) f(n, a)
         }
-        var r;
+        var audioPlayer;
         this.init = function(n, a) {
-            f = a,
-            function(n) {
-                c = n;
-                for (var a = [], e = 0; e < o; e++)
-                    a[e] = [e + ".mp3"];
-                (r = new WebAudioManager).load("data/track/track.json", a, t, i)
-            }(n)
-        }
-        ,
+            f = a;
+            c = n;
+            for (var a = [], e = 0; e < o; e++) {
+                a[e] = [e + ".mp3"];
+            }
+            audioPlayer = new WebAudioManager;
+            audioPlayer.load("data/track/track.json", a, t, i);
+        };
         this.update = function() {
-            !function() {
-                if (l) {
-                    var n = 1e3 * (aidn.___waContext.currentTime - m);
-                    if (v * p < n) {
-                        var a = (v = Math.floor(n / p) + 1) * p - n;
-                        if (0 <= a) {
-                            if (!T)
-                                return;
-                            for (var e = (v - 1) % u, t = d.length, i = 0; i < t; i++) {
-                                var o = d[i][e];
-                                0 <= o && r.play(o, a / 1e3, s[o])
-                            }
+            if (!playing) return;
+            var n = 1e3 * (aidn.___waContext.currentTime - m);
+            if (progress * gapTime < n) {
+                var a = (progress = Math.floor(n / gapTime) + 1) * gapTime - n;
+                if (0 <= a && T) {
+                    for (var e = (progress - 1) % trackLength, t = tracks.length, i = 0; i < t; i++) {
+                        var note = tracks[i][e];
+                        if (note >= 0) {
+                            audioPlayer.play(note, a / 1e3, s[note])
                         }
                     }
                 }
-            }()
-        }
-        ,
+            }            
+        };
         this.start = function() {
-            l = !0,
-            v = 0
-        }
-        ;
+            playing = !0;
+            progress = 0;
+        };
         this.end = function() {
-            l = !1,
-            v = 0
-        }
-        ;
-        var l = !1
-          , o = 11;
+            playing = !1;
+            progress = 0;
+        };
+        var playing = !1;
+        var o = 11;
         this.length = o;
-        for (var s = [], n = 0; n < o; n++)
+        for (var s = [], n = 0; n < o; n++) {
             s[n] = 1.2;
-        s[1] *= .6;
-        var d = [[0, 1, 2, 1], []]
-          , a = "";
-        a += "3443443443443434",
-        a += "5665665665665656",
-        a += "7887887887887878";
-        var e = (a += "9119119119119191").length;
-        for (n = 0; n < e; n++) {
-            var h = parseInt(a.charAt(n));
-            1 == h && (h = 10),
-            d[1][n] = h,
-            4 <= n && (d[0][n] = d[0][n % 4])
         }
-        var c, f, u = d[0].length, v = 0, p = 6e4 / 280
+        s[1] *= .6;
+
+        var bpm = 140;
+        const DRUMS = 0, PIANO = 1;
+        var tracks = [
+            [0, 1, 2, 1],
+            []
+        ];
+        var a = "";
+        a += "3443443443443434";
+        a += "5665665665665656";
+        a += "7887887887887878";
+        a += "9119119119119191";
+        for (n = 0; n < a.length; n++) {
+            var h = parseInt(a.charAt(n));
+
+            // 钢琴轨道，并且将 1.mp3 当作 10.mp3 处理
+            tracks[PIANO][n] = h == 1 ? 10 : h;
+
+            if (n >= 4) { // 循环底鼓轨道
+                tracks[DRUMS][n] = tracks[0][n % 4];
+            }
+        }
+        var c, f, trackLength = tracks[DRUMS].length, progress = 0, gapTime = 6e4 / bpm / 2
     }
-    , R = new function() {
+    , vocalPlayer = new function() {
         var o, r = -1, l = -1;
         function t() {
             c && c()
@@ -608,7 +647,7 @@ var MainManager = function() {
         function c(n, a, e) {
             var t, i;
             u != n && (1 != a && (u = n),
-            u < 0 || (R.play(n % R.length, e),
+            u < 0 || (vocalPlayer.play(n % vocalPlayer.length, e),
             D = 90,
             S && (S = !1,
             $("#bt_back").stop().fadeOut(200, "linear"),
@@ -1580,6 +1619,7 @@ var MainManager = function() {
                     var n = X();
                     c = P[n],
                     $("#about").css("background-color", "#" + c.toString(16)),
+                    $("#select").css("background-color", "#" + c.toString(16)),
                     Math.random() < .3 && T.flash(p),
                     O = n,
                     y.clear(),
