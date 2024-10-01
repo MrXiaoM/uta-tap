@@ -204,16 +204,28 @@ var MainManager = function() {
     });
     $("#bt_feedback a").click(onFeedbackClick);
     $("#bt_backtrack a").click(onBgMusicClick);
-    function updateSelectState(highlight) {
-        $('#tracks > li, #vocals > li, .custom').css({background: '', color: ''});
+    function updateSelectState() {
+        $('.option, .custom').removeAttr('style');
         let style = {background: '#FFF', color: '#000'};
-        $('input[checked]').parent().css(style)
-        if (highlight) highlight.css(style);
         if (currentTracksName == '*自定义*') {
+            var tracks = $('input[type="radio"][name="tracks"]');
+            for (var i = 0; i < tracks.length; i++) {
+                tracks[i].checked = false;
+            }
             $("#file_music").parent().css(style);
+        } else {
+            $('input[type="radio"][name="tracks"][value="' + currentTracksName + '"]').parent().css(style);
+            $("#file_music").val('');
         }
         if (currentVocalName == "*自定义*") {
+            var vocals = $('input[type="radio"][name="vocals"]');
+            for (var i = 0; i < vocals.length; i++) {
+                vocals[i].checked = false;
+            }
             $("#file_vocal").parent().css(style);
+        } else {
+            $('input[type="radio"][name="vocals"][value="' + currentVocalName + '"]').parent().css(style);
+            $("#file_vocal").val('');
         }
     }
     function loadSelectList() {
@@ -227,17 +239,16 @@ var MainManager = function() {
                 if (str.trim().length > 0) {
                     var checked = currentTracksName == str ? " checked" : "";
                     tracks.append(
-`<li>
+`<li class="option">
     <input type="radio" name="tracks" id="${str}" value="${str}"${checked}>
     <label for="${str}">${str}</label>
 </li>`);
                 }
             }
-            updateSelectState(null);
+            updateSelectState();
             $('input[name="tracks"]').change(function() {
                 let selectedValue = $(this).val();
                 loadMusicTracksFromName(selectedValue);
-                updateSelectState($(this));
             });
         });
         fetch("data/vocal.txt", {cache: "no-store"})
@@ -250,17 +261,16 @@ var MainManager = function() {
                 if (str.trim().length > 0) {
                     var checked = currentVocalName == str ? " checked" : "";
                     vocals.append(
-`<li>
+`<li class="option">
     <input type="radio" name="vocals" id="${str}" value="${str}"${checked}>
     <label for="${str}">${str}</label>
 </li>`);
                 }
             }
-            updateSelectState(null);
+            updateSelectState();
             $('input[name="vocals"]').change(function() {
                 let selectedValue = $(this).val();
                 loadVocalFromName(selectedValue);
-                updateSelectState($(this));
             });
         });
     }
@@ -269,10 +279,8 @@ var MainManager = function() {
         var file = $(this).prop('files')[0];
         var reader = new FileReader();
         reader.onload = function(e) {
-            $('input[name="tracks"]').removeAttr('checked');
             var content = e.target.result;
             loadMusicTracksFromJson(content);
-            updateSelectState();
         };
         reader.readAsText(file);
     });
@@ -280,10 +288,8 @@ var MainManager = function() {
         var file = $(this).prop('files')[0];
         var reader = new FileReader();
         reader.onload = function(e) {
-            $('input[name="vocals"]').removeAttr('checked');
             var content = e.target.result;
             loadVocalFromJson(content);
-            updateSelectState();
         };
         reader.readAsText(file);
     });
@@ -304,12 +310,14 @@ var MainManager = function() {
     }
     function loadMusicTracksFromName(tracksName) {
         currentTracksName = tracksName;
+        updateSelectState();
         loadMusicTracks(function(done) {
             $.getJSON("data/music/" + tracksName + ".json", done);
         })
     }
     function loadMusicTracksFromJson(json) {
         currentTracksName = "*自定义*";
+        updateSelectState();
         loadMusicTracks(function(done) {
             done($.parseJSON(json));
         })
@@ -398,12 +406,14 @@ var MainManager = function() {
     }
     function loadVocalFromName(vocalName) {
         currentVocalName = vocalName;
+        updateSelectState();
         loadVocal(function(done) {
             $.getJSON("data/vocal/" + vocalName + ".json", done);
         })
     }
     function loadVocalFromJson(json) {
         currentVocalName = "*自定义*";
+        updateSelectState();
         loadVocal(function(done) {
             done($.parseJSON(json));
         })
