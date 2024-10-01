@@ -198,6 +198,7 @@ var MainManager = function() {
     $("#bt_feedback a").click(onFeedbackClick);
     $("#bt_backtrack a").click(onBgMusicClick);
     var G, A, isJapanese = aidn.util.checkJapanese(), isMobile = aidn.util.checkMobile();
+    var bpm = 140;
     var m, I, z, b = 0, x = 0, trackPlayer = new function() {
         function t() {
             if (c) c()
@@ -231,22 +232,22 @@ var MainManager = function() {
             }            
         };
         this.start = function() {
-            playing = !0;
+            playing = true;
             progress = 0;
         };
         this.end = function() {
-            playing = !1;
+            playing = false;
             progress = 0;
         };
-        var playing = !1;
+        var playing = false;
         var o = 11;
+        var s = [];
         this.length = o;
-        for (var s = [], n = 0; n < o; n++) {
+        for (n = 0; n < o; n++) {
             s[n] = 1.2;
         }
         s[1] *= .6;
 
-        var bpm = 140;
         const DRUMS = 0, PIANO = 1;
         var tracks = [
             [0, 1, 2, 1],
@@ -270,39 +271,42 @@ var MainManager = function() {
         var c, f, trackLength = tracks[DRUMS].length, progress = 0, gapTime = 6e4 / bpm / 2
     }
     , vocalPlayer = new function() {
-        var o, r = -1, l = -1;
+        var audioPlayer, r = -1, l = -1;
         function t() {
-            c && c()
+            if (c) c();
         }
         function i(n, a) {
-            e && e(n, a)
+            if (e) e(n, a);
         }
         this.init = function(n, a) {
-            e = a,
-            function(n) {
-                c = n;
-                for (var a = [], e = 0; e < s; e++)
-                    a[e] = [e + ".mp3"];
-                (o = new WebAudioManager).load("data/main/main.json", a, t, i)
-            }(n)
-        }
-        ;
+            e = a;
+            c = n;
+            for (var a = [], e = 0; e < s; e++) {
+                a[e] = [e + ".mp3"];
+            }
+            audioPlayer = new WebAudioManager;
+            audioPlayer.load("data/main/main.json", a, t, i);
+        };
         this.play = function(n, a) {
-            var e = 1e3 * (aidn.___waContext.currentTime + h[n] - m)
-              , t = Math.floor(e / f);
-            t == r && 0 <= l && o.stop(l),
-            r = t,
+            var e = 1e3 * (aidn.___waContext.currentTime + h[n] - m);
+            var t = Math.floor(e / gapTime);
+            if (t == r && l >= 0) {
+                audioPlayer.stop(l);
+            }
+            r = t;
             l = n;
-            var i = f - e % f;
-            o.play(n, i / 1e3, d[n])
-        }
-        ;
+            var i = gapTime - e % gapTime;
+            audioPlayer.play(n, i / 1e3, d[n]);
+        };
         var s = 32;
         this.length = s;
-        for (var d = [], h = [], n = 0; n < s; n++)
-            d[n] = 1,
+        
+        for (var d = [], h = [], n = 0; n < s; n++) {
+            d[n] = 1;
             h[n] = .05;
-        for (h[6] = .08,
+        }
+        
+        h[6] = .08,
         h[20] = .1,
         h[23] = .1,
         d[1] = 1.3,
@@ -313,10 +317,11 @@ var MainManager = function() {
         d[17] = .8,
         d[22] = .9,
         d[25] = .7,
-        d[29] = 1.2,
-        n = 0; n < s; n++)
+        d[29] = 1.2;
+        for (n = 0; n < s; n++) {
             d[n] *= 1.2;
-        var c, e, f = 6e4 / 280
+        }
+        var c, e, gapTime = 6e4 / bpm / 2;
     }
     , g = new function() {
         var s = function(n, a) {
@@ -1722,38 +1727,38 @@ var MainManager = function() {
 }
   , WebAudioManager = function() {
     function i() {
-        if (a++,
-        h.now = a,
-        s && s(a, o),
-        o <= a)
-            l && l();
+        manager.now = ++a;
+        if (s && s(a, size), size <= a) {
+            if (l) l();
+        }
         else {
             var n = new aidn.WebAudio;
-            n.load(d[r[a]], i),
-            t[a] = n
+            n.load(loadedJson[fileNameList[a]], i);
+            loadedFiles[a] = n;
         }
     }
-    this.load = function(n, a, e, t) {
+    this.load = function(jsonPath, a, e, t) {
         l = e,
         s = t,
-        o = (r = a).length,
-        h.length = o,
-        $.getJSON(n, function(n) {
-            d = n,
-            i()
+        size = (fileNameList = a).length,
+        manager.length = size,
+        $.getJSON(jsonPath, function(n) {
+            loadedJson = n;
+            i();
         })
-    }
-    ,
+    };
     this.play = function(n, a, e) {
-        0 <= e || (e = 1),
-        n < o && t[n].play(0, !1, null, 0, e, a)
-    }
-    ,
+        if (e < 0) e = 1;
+        if (n < size) {
+            loadedFiles[n].play(0, false, null, 0, e, a);
+        }
+    };
     this.stop = function(n) {
-        n < o && t[n].stop()
-    }
-    ;
-    var o, r, l, s, d, h = this, a = -1, t = [];
-    this.length = 0,
-    this.now = 0
+        if (n < size) {
+            loadedFiles[n].stop();
+        }
+    };
+    var size, fileNameList, l, s, loadedJson, manager = this, a = -1, loadedFiles = [];
+    this.length = 0;
+    this.now = 0;
 };
