@@ -204,6 +204,7 @@ a:hover {
 .split {
     display: flex;
     justify-content: center;
+    margin-bottom: 42px;
 }
 .split > hr {
     margin-block-start: 0;
