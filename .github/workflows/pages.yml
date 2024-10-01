@@ -15,17 +15,23 @@ jobs:
         uses: actions/checkout@v1
         with:
           fetch-depth: 0
+      - name: Use Node.js 18.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
       - name: deploy
         run: |
-          remote_addr=`git remote get-url --push origin`
-          commit_info=`git describe --all --always --long`
-          user_name=`git log -1 --pretty=format:'%an'`
-          user_email=`git log -1 --pretty=format:'%ae'`
+          npm install uglify-js -g
+          uglifyjs www/js/utatap.js -o www/js/utatap.js
           rm data/README
           mkdir data/vocal data/music
           ls data/vocal>data/vocal.txt
           ls data/music>data/music.txt
           cp -r data www
+          remote_addr=`git remote get-url --push origin`
+          commit_info=`git describe --all --always --long`
+          user_name=`git log -1 --pretty=format:'%an'`
+          user_email=`git log -1 --pretty=format:'%ae'`
           cd www
           git config --global init.defaultBranch gh-pages
           git init
