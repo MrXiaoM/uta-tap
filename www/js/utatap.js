@@ -3,6 +3,10 @@ $(function() {
 });
 var MainManager = function() {
     aidn.util.useDummyDiv();
+    function loadDefaultVocalAndTracks() {
+        loadMusicTracksFromName('mikutap');
+        loadVocalFromName('mikuv4x');
+    }
     function onWindowResize() {
         windowWidth = aidn.window.width();
         windowHeight = aidn.window.height();
@@ -12,9 +16,9 @@ var MainManager = function() {
         }
     }
     function loadingCallback(n, a) {
-        a = vocalPlayer.length + trackPlayer.length;
+        a = vocalPlayer.length + tracksPlayer.length;
         if (pageFlag == 1) {
-            n += trackPlayer.length;
+            n += tracksPlayer.length;
         }
         var e = (a <= 0) ? "0%" : Math.round(n / a * 100) + "%";
         $("#scene_loading hr").css("width", e);
@@ -41,7 +45,7 @@ var MainManager = function() {
         }
         lastTime = aidn.___waContext.currentTime;
         animatePlayer.start();
-        trackPlayer.start();
+        tracksPlayer.start();
     }
     function onFeedbackClick(event) {
         if (settingsFeedback = !settingsFeedback) {
@@ -64,7 +68,7 @@ var MainManager = function() {
         if (event) event.preventDefault();
     }
     function update() {
-        trackPlayer.update();
+        tracksPlayer.update();
         if (sceneFlag == 1 && --D < 0) {
             showIdleScreen();
         }
@@ -111,13 +115,13 @@ var MainManager = function() {
             try {
                 aidn.adv.show();
             } catch (n) {}
-            var n = 1;
-            if (window.devicePixelRatio >= 2) n = 2;
+            var resolution = 1;
+            if (window.devicePixelRatio >= 2) resolution = 2;
             (renderer = PIXI.autoDetectRenderer(windowWidth, windowHeight, {
                 backgroundColor: 16756655,
-                antialias: !1,
-                resolution: n
-            })).autoDensity = !0;
+                antialias: false,
+                resolution: resolution
+            })).autoDensity = true;
             document.getElementById("view").appendChild(renderer.view);
             renderContainer = new PIXI.Container;
             animatePlayer.init();
@@ -126,7 +130,8 @@ var MainManager = function() {
             update();
         }()
     };
-    for (var l = 0, s = 6e4 / 280, d = Math.floor(32 * Math.random()), h = 0, c = [], f = 0, u = 0; u < 32; u++) {
+    var l = 0, s = 6e4 / 280, d = Math.floor(32 * Math.random()), h = 0, c = [], f = 0;
+    for (var u = 0; u < 32; u++) {
         c[u] = u;
     }
     function showIdleScreen() {
@@ -154,7 +159,7 @@ var MainManager = function() {
             playStart();
         } else {
             (new aidn.WebAudio).load("");
-            trackPlayer.init(t, loadingCallback);
+            tracksPlayer.init(t, loadingCallback);
         }
         try {
             aidn.adv.hide();
@@ -187,7 +192,7 @@ var MainManager = function() {
                 aidn.adv.show();
             } catch (n) {}
             animatePlayer.end();
-            trackPlayer.end();
+            tracksPlayer.end();
             $("#scene_top").stop().fadeIn(100, "linear");
             $("#scene_loading").stop().fadeOut(100, "linear");
             $("#scene_main").stop().fadeOut(100, "linear");
@@ -202,7 +207,7 @@ var MainManager = function() {
     var windowWidth, windowHeight, isMobile = aidn.util.checkMobile();
     var bpm = 140;
     var lastTime, renderer, renderContainer, pageFlag = 0, sceneFlag = 0;
-    var trackPlayer, vocalPlayer;
+    var tracksPlayer, currentTracksName, vocalPlayer, currentVocalName;
     function resolveFromJson(jsonArray, target) {
         if (jsonArray) for (var i in jsonArray) {
             var j = i.indexOf('.mp3');
@@ -214,8 +219,20 @@ var MainManager = function() {
             }
         }
     }
-    function loadTrack(trackName) {
-        trackPlayer = new function() {
+    function loadMusicTracksFromName(tracksName) {
+        currentTracksName = tracksName;
+        loadMusicTracks(function(done) {
+            $.getJSON("data/music/" + tracksName + ".json", done);
+        })
+    }
+    function loadMusicTracksFromJson(json) {
+        currentTracksName = "*自定义*";
+        loadMusicTracks(function(done) {
+            done($.parseJSON(json));
+        })
+    }
+    function loadMusicTracks(jsonProvider) {
+        tracksPlayer = new function() {
             function t() {
                 if (c) c()
             }
@@ -226,7 +243,7 @@ var MainManager = function() {
             this.init = function(n, a) {
                 f = a;
                 c = n;
-                $.getJSON("data/music/" + trackName + ".json", function(json) {
+                jsonProvider(function (json) {
                     loadedJson = json;
                     audioPlayer = new WebAudioManager;
                     audioPlayer.load(json.media, t, i);
@@ -294,7 +311,19 @@ var MainManager = function() {
             var player = this, c, f, loadedJson, trackLength, progress = 0, gapTime = 6e4 / bpm / 2
         };
     }
-    function loadVocal(vocalName) {
+    function loadVocalFromName(vocalName) {
+        currentVocalName = vocalName;
+        loadVocal(function(done) {
+            $.getJSON("data/vocal/" + vocalName + ".json", done);
+        })
+    }
+    function loadVocalFromJson(json) {
+        currentVocalName = "*自定义*";
+        loadVocal(function(done) {
+            done($.parseJSON(json));
+        })
+    }
+    function loadVocal(jsonProvider) {
         vocalPlayer = new function() {
             var audioPlayer, r = -1, l = -1;
             function t() {
@@ -307,7 +336,7 @@ var MainManager = function() {
             this.init = function(n, a) {
                 e = a;
                 c = n;
-                $.getJSON("data/vocal/" + vocalName + ".json", function(json) {
+                jsonProvider(function(json) {
                     loadedJson = json;
                     audioPlayer = new WebAudioManager;
                     audioPlayer.load(json.media, t, i);
@@ -339,8 +368,7 @@ var MainManager = function() {
             var player = this, c, e, loadedJson, gapTime = 6e4 / bpm / 2;
         };
     }
-    loadTrack('mikutap');
-    loadVocal('mikuv4x');
+    loadDefaultVocalAndTracks();
     var animatePlayer = new function() {
         var s = function(n, a) {
             this.id = n,
