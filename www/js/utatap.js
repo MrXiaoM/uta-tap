@@ -205,16 +205,15 @@ var MainManager = function() {
     $("#bt_feedback a").click(onFeedbackClick);
     $("#bt_backtrack a").click(onBgMusicClick);
     function updateSelectState() {
-        $('.option, .custom').removeAttr('style');
-        let style = {background: '#FFF', color: '#000'};
+        $('.option, .custom') .removeClass('selected');
         if (currentTracksName == '*自定义*') {
             var tracks = $('input[type="radio"][name="tracks"]');
             for (var i = 0; i < tracks.length; i++) {
                 tracks[i].checked = false;
             }
-            $("#file_music").parent().css(style);
+            $("#file_music").parent().addClass('selected');
         } else {
-            $('input[type="radio"][name="tracks"][value="' + currentTracksName + '"]').parent().css(style);
+            $('input[type="radio"][name="tracks"][value="' + currentTracksName + '"]').parent().addClass('selected');
             $("#file_music").val('');
         }
         if (currentVocalName == "*自定义*") {
@@ -222,9 +221,9 @@ var MainManager = function() {
             for (var i = 0; i < vocals.length; i++) {
                 vocals[i].checked = false;
             }
-            $("#file_vocal").parent().css(style);
+            $("#file_vocal").parent().addClass('selected');
         } else {
-            $('input[type="radio"][name="vocals"][value="' + currentVocalName + '"]').parent().css(style);
+            $('input[type="radio"][name="vocals"][value="' + currentVocalName + '"]').parent().addClass('selected');
             $("#file_vocal").val('');
         }
     }

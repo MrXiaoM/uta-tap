@@ -215,19 +215,35 @@ a:hover {
 .split > div {
     width: 48%;
 }
-.split ul > li {
+.option, .custom {
     display: flex;
     justify-content: center;
     align-items: center;
     height: 27px;
     margin-bottom: 10px;
 }
-.split ul > li > input {
+.option > input {
     display: none;
 }
-.custom > input {
-    width: 80px;
+.selected {
+    background: #FFF;
+    color: #000;
+    font-weight: bold;
 }
+.custom {
+    padding-top: 8px;
+    border: dashed #FFF;
+    border-width: 1px 0 0 0;
+}
+.custom > input[type="file"] {
+    display: none;
+}
+.option > label, .custom > label {
+    display: block;
+    width: 100%;
+    cursor: pointer;
+}
+
 
 @keyframes animover {
     0.00% {
