@@ -315,6 +315,8 @@ var MainManager = function() {
         })
     }
     function loadMusicTracks(jsonProvider) {
+        pageFlag = 0;
+        sceneFlag = 0;
         tracksPlayer = new function() {
             function t() {
                 if (c) c()
@@ -407,6 +409,8 @@ var MainManager = function() {
         })
     }
     function loadVocal(jsonProvider) {
+        pageFlag = 0;
+        sceneFlag = 0;
         vocalPlayer = new function() {
             var audioPlayer, r = -1, l = -1;
             function t() {
