@@ -32,13 +32,13 @@ var MainManager = function() {
         g.start(),
         C.start()
     }
-    function n(n) {
+    function onFeedbackClick(n) {
         (U = !U) ? ($("#bt_feedback a").text("反馈: 开启"),
         aidn.util.setCookie("fb", "on", 2592e3)) : ($("#bt_feedback a").text("反馈: 关闭"),
         aidn.util.setCookie("fb", "off", 2592e3)),
         n && n.preventDefault()
     }
-    function o(n) {
+    function onBgMusicClick(n) {
         (T = !T) ? ($("#bt_backtrack a").text("背景音乐: 开启"),
         aidn.util.setCookie("bt", "on", 2592e3)) : ($("#bt_backtrack a").text("背景音乐: 关闭"),
         aidn.util.setCookie("bt", "off", 2592e3)),
@@ -160,20 +160,9 @@ var MainManager = function() {
             location.href = "https://www.mrxiaom.top/"
         }
     }),
-    $("#bt_feedback a").click(n),
-    $("#bt_backtrack a").click(o);
-    var G, A, y = aidn.util.checkJapanese(), E = aidn.util.checkMobile(), w = "https://aidn.jp/mikutap/", M = "Mikutap";
-    M += y ? ",初音未来10周年" : ",Miku10th",
-    $("#bt_tw").click(function(n) {
-        var a = document.title;
-        aidn.social.shareTw(w, !0, a, "daniwell_aidn", M)
-    }),
-    $("#bt_fb").click(function(n) {
-        aidn.social.shareFb(w, !0)
-    }),
-    $("#bt_gp").click(function(n) {
-        aidn.social.shareGp(w, !0)
-    });
+    $("#bt_feedback a").click(onFeedbackClick),
+    $("#bt_backtrack a").click(onBgMusicClick);
+    var G, A, isJapanese = aidn.util.checkJapanese(), isMobile = aidn.util.checkMobile();
     var m, I, z, b = 0, x = 0, C = new function() {
         function t() {
             c && c()
@@ -661,24 +650,24 @@ var MainManager = function() {
         }
         ,
         this.start = function() {
-            E || ($("#view").on("mousedown", i),
+            isMobile || ($("#view").on("mousedown", i),
             $(window).on("mousemove", o),
             $(window).on("mouseup", h),
             $(window).on("keydown", a),
             $(window).on("keyup", e)),
-            (E || window.TouchEvent) && ($("#view").on("touchstart", i),
+            (isMobile || window.TouchEvent) && ($("#view").on("touchstart", i),
             $(window).on("touchmove", o),
             $(window).on("touchend", h)),
             $("#view").css("cursor", "pointer")
         }
         ,
         this.end = function() {
-            E || ($("#view").off("mousedown", i),
+            isMobile || ($("#view").off("mousedown", i),
             $(window).off("mousemove", o),
             $(window).off("mouseup", h),
             $(window).off("keydown", a),
             $(window).off("keyup", e)),
-            (E || window.TouchEvent) && ($("#view").off("touchstart", i),
+            (isMobile || window.TouchEvent) && ($("#view").off("touchstart", i),
             $(window).off("touchmove", o),
             $(window).off("touchend", h)),
             $("#view").css("cursor", "auto")
@@ -1680,14 +1669,14 @@ var MainManager = function() {
         var F = 0
     }
     , S = !1, D = 0, U = "off" == aidn.util.getCookie("fb"), T = "off" == aidn.util.getCookie("bt");
-    n(),
-    o(),
+    onFeedbackClick(),
+    onBgMusicClick(),
     aidn.util.webaudio ? ($("#ng").css("display", "none"),
     $(".ok").css("display", "block"),
-    E && $("#scene_main .attention").html("点按 &amp; 划动!"),
-    y || $("#scene_top .attention").text("※ 调高你的音量并享受吧！")) : ($("#ng").css("display", "block"),
+    isMobile && $("#scene_main .attention").html("点按 &amp; 划动!"),
+    isJapanese || $("#scene_top .attention").text("※ 调高你的音量并享受吧！")) : ($("#ng").css("display", "block"),
     $(".ok").css("display", "none"),
-    y || $("#ng .atten").html("十分抱歉，<br>您的浏览器并不支持本页面需要的特性")),
+    isJapanese || $("#ng .atten").html("十分抱歉，<br>您的浏览器并不支持本页面需要的特性")),
     PIXI.utils._saidHello = !0,
     aidn.window.resize(a)
 }
