@@ -124,6 +124,15 @@ var MainManager = function() {
         } catch (n) {}
         n.preventDefault()
     }),
+    $("#bt_select a").click(function(n) {
+        $("#select").stop().fadeIn(200, "linear"),
+        $("#select_cover").stop().fadeIn(200, "linear"),
+        n.preventDefault()
+    }),
+    $("#bt_close,#select_cover").click(function() {
+        $("#select").stop().fadeOut(200, "linear"),
+        $("#select_cover").stop().fadeOut(200, "linear")
+    }),
     $("#bt_about a").click(function(n) {
         $("#about").stop().fadeIn(200, "linear"),
         $("#about_cover").stop().fadeIn(200, "linear"),

@@ -1,3 +1,4 @@
+#select_cover,
 #about_cover,
 #view,
 #view canvas,
@@ -7,6 +8,8 @@ html {
     width: 100%
 }
 
+#select,
+#select_cover,
 #about,
 #about_cover,
 #bt_fs,
@@ -15,11 +18,13 @@ html {
     display: none
 }
 
+#select a,
 #about a,
 #bt_about a,
 #bt_backtrack a,
 #bt_feedback a,
-#bt_start a {
+#bt_start a,
+#bt_select a {
     color: #fff;
     text-decoration: none;
     border-bottom: dashed 1px #fff
@@ -35,6 +40,7 @@ html {
     font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, "Helvetica Neue", Arial, sans-serif;
 }
 
+#select_cover,
 #about_cover,
 #view {
     position: fixed;
@@ -67,6 +73,7 @@ html {
     width: 100%
 }
 
+#select,
 #about,
 #scene_loading,
 #scene_main,
@@ -86,7 +93,8 @@ html {
     margin-bottom: 25px
 }
 
-#bt_start {
+#bt_start,
+#bt_select {
     margin-bottom: 15px
 }
 
@@ -134,12 +142,14 @@ html {
     pointer-events: auto
 }
 
+#select_cover,
 #about_cover {
     z-index: 900;
     background: #fff;
     opacity: .5
 }
 
+#select,
 #about {
     z-index: 1000;
     color: #fff;
@@ -150,6 +160,7 @@ html {
     width: 100%
 }
 
+#select_in,
 #about_in {
     padding: 40px
 }
@@ -159,15 +170,18 @@ html {
     cursor: pointer
 }
 
+#select .close,
 #about .close {
     margin-bottom: 30px
 }
 
+#select .con,
 #about .con {
     line-height: 1.7;
     margin-bottom: 20px
 }
 
+#select .link,
 #about .link {
     margin-top: 30px;
     margin-bottom: 10px;
@@ -212,12 +226,14 @@ a:hover {
     }
 
     #bt_start,
+    #bt_select,
     #scene_top .tit {
         margin-bottom: 10px
     }
 
     #bt_about a,
-    #bt_start a {
+    #bt_start a,
+    #bt_select {
         font-size: .9rem
     }
 
@@ -253,6 +269,7 @@ a:hover {
         font-size: .7rem
     }
 
+    #select_in,
     #about_in {
         padding: 30px
     }
@@ -262,16 +279,20 @@ a:hover {
         cursor: pointer
     }
 
+    #select,
     #about {
         letter-spacing: .1rem
     }
 
+    #select a,
     #about a {
         color: #fff;
         text-decoration: none;
         border-bottom: dashed 1px #fff
     }
 
+    #select .com,
+    #select .link,
     #about .con,
     #about .link {
         font-size: .9rem
