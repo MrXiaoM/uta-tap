@@ -22,6 +22,7 @@ jobs:
           user_name=`git log -1 --pretty=format:'%an'`
           user_email=`git log -1 --pretty=format:'%ae'`
           rm data/README
+          mkdir data/vocal data/music
           ls data/vocal>data/vocal.txt
           ls data/music>data/music.txt
           cp -r data www
