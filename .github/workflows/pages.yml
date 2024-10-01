@@ -26,7 +26,7 @@ jobs:
           uglifycss www/css/utatap.css > www/css/utatap.min.css
           rm www/css/utatap.css
           mv www/css/utatap.min.css www/css/utatap.css
-          rm data/README
+          rm data/README.md
           ls -N1 data/vocal>data/vocal.txt
           ls -N1 data/music>data/music.txt
           cp -r data www
