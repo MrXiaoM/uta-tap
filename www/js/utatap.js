@@ -202,130 +202,145 @@ var MainManager = function() {
     var windowWidth, windowHeight, isMobile = aidn.util.checkMobile();
     var bpm = 140;
     var lastTime, renderer, renderContainer, pageFlag = 0, sceneFlag = 0;
-    var trackPlayer = new function() {
-        function t() {
-            if (c) c()
-        }
-        function i(n, a) {
-            if (f) f(n, a)
-        }
-        var audioPlayer;
-        this.init = function(n, a) {
-            f = a;
-            c = n;
-            for (var a = [], e = 0; e < o; e++) {
-                a[e] = [e + ".mp3"];
+    var trackPlayer, vocalPlayer;
+    function resolveFromJson(jsonArray, target) {
+        if (jsonArray) for (var i in jsonArray) {
+            var j = i.indexOf('.mp3');
+            if (j > 0) {
+                var k = parseInt(i.substring(0, j));
+                if (k != undefined) {
+                    target[k] = jsonArray[i];
+                }
             }
-            audioPlayer = new WebAudioManager;
-            audioPlayer.load("data/track/track.json", a, t, i);
-        };
-        this.update = function() {
-            if (!playing) return;
-            var n = 1e3 * (aidn.___waContext.currentTime - lastTime);
-            if (progress * gapTime < n) {
-                var a = (progress = Math.floor(n / gapTime) + 1) * gapTime - n;
-                if (0 <= a && settingsBackgroundTrack) {
-                    for (var e = (progress - 1) % trackLength, t = tracks.length, i = 0; i < t; i++) {
-                        var note = tracks[i][e];
-                        if (note >= 0) {
-                            audioPlayer.play(note, a / 1e3, s[note])
+        }
+    }
+    function loadTrack(trackName) {
+        trackPlayer = new function() {
+            function t() {
+                if (c) c()
+            }
+            function i(n, a) {
+                if (f) f(n, a)
+            }
+            var audioPlayer;
+            this.init = function(n, a) {
+                f = a;
+                c = n;
+                $.getJSON("data/music/" + trackName + ".json", function(json) {
+                    loadedJson = json;
+                    audioPlayer = new WebAudioManager;
+                    audioPlayer.load(json.media, t, i);
+                    player.length = audioPlayer.length;
+
+                    var v = json.volume;
+                    var defV = v ? v.default : 1;
+                    for (var n = 0; n < player.length; n++) {
+                        volume[n] = defV;
+                    }
+                    resolveFromJson(v, volume);
+
+                    if (json.bpm != undefined) {
+                        bpm = json.bpm;
+                    }
+
+                    tracks = [];
+                    trackLength = 0;
+                    for (var i in json.tracks) {
+                        var trackInfo = json.tracks[i];
+                        if (trackLength < trackInfo.notes.length) {
+                            trackLength = trackInfo.notes.length;
+                        }
+                    }
+                    for (var i in json.tracks) {
+                        var trackInfo = json.tracks[i];
+                        if (trackInfo.loop) {
+                            var track = [];
+                            var notes = trackInfo.notes.length;
+                            for (var i = 0; i < trackLength; i++) {
+                                track.push(trackInfo.notes[i % notes]);
+                            }
+                            tracks.push(track);
+                        } else {
+                            tracks.push(trackInfo.notes);
+                        }
+                    }
+                });
+            };
+            this.update = function() {
+                if (!playing) return;
+                var n = 1e3 * (aidn.___waContext.currentTime - lastTime);
+                if (progress * gapTime < n) {
+                    var delay = (progress = Math.floor(n / gapTime) + 1) * gapTime - n;
+                    if (0 <= delay && settingsBackgroundTrack) {
+                        for (var e = (progress - 1) % trackLength, t = tracks.length, i = 0; i < t; i++) {
+                            var note = tracks[i][e];
+                            if (note >= 0) {
+                                audioPlayer.play(note, delay / 1e3, volume[note])
+                            }
                         }
                     }
                 }
-            }            
+            };
+            this.start = function() {
+                playing = true;
+                progress = 0;
+            };
+            this.end = function() {
+                playing = false;
+                progress = 0;
+            };
+            var playing = false;
+            var volume = [], tracks = [];
+            var player = this, c, f, loadedJson, trackLength, progress = 0, gapTime = 6e4 / bpm / 2
         };
-        this.start = function() {
-            playing = true;
-            progress = 0;
-        };
-        this.end = function() {
-            playing = false;
-            progress = 0;
-        };
-        var playing = false;
-        var o = 11;
-        var s = [];
-        this.length = o;
-        for (n = 0; n < o; n++) {
-            s[n] = 1.2;
-        }
-        s[1] *= .6;
-
-        const DRUMS = 0, PIANO = 1;
-        var tracks = [
-            [0, 1, 2, 1],
-            []
-        ];
-        var a = "";
-        a += "3443443443443434";
-        a += "5665665665665656";
-        a += "7887887887887878";
-        a += "9119119119119191";
-        for (n = 0; n < a.length; n++) {
-            var h = parseInt(a.charAt(n));
-
-            // 钢琴轨道，并且将 1.mp3 当作 10.mp3 处理
-            tracks[PIANO][n] = h == 1 ? 10 : h;
-
-            if (n >= 4) { // 循环底鼓轨道
-                tracks[DRUMS][n] = tracks[0][n % 4];
+    }
+    function loadVocal(vocalName) {
+        vocalPlayer = new function() {
+            var audioPlayer, r = -1, l = -1;
+            function t() {
+                if (c) c();
             }
-        }
-        var c, f, trackLength = tracks[DRUMS].length, progress = 0, gapTime = 6e4 / bpm / 2
-    };
-    var vocalPlayer = new function() {
-        var audioPlayer, r = -1, l = -1;
-        function t() {
-            if (c) c();
-        }
-        function i(n, a) {
-            if (e) e(n, a);
-        }
-        this.init = function(n, a) {
-            e = a;
-            c = n;
-            for (var a = [], e = 0; e < s; e++) {
-                a[e] = [e + ".mp3"];
+            function i(n, a) {
+                if (e) e(n, a);
             }
-            audioPlayer = new WebAudioManager;
-            audioPlayer.load("data/main/main.json", a, t, i);
+            var volume = [], delay = [];
+            this.init = function(n, a) {
+                e = a;
+                c = n;
+                $.getJSON("data/vocal/" + vocalName + ".json", function(json) {
+                    loadedJson = json;
+                    audioPlayer = new WebAudioManager;
+                    audioPlayer.load(json.media, t, i);
+                    player.length = audioPlayer.length;
+                    var d = json.d_value;
+                    var v = json.volume;
+                    var defD = d ? d.default : 0;
+                    var defV = v ? v.default : 1;
+                    delay = [], volume = [];
+                    for (var n = 0; n < player.length; n++) {
+                        delay[n] = defD;
+                        volume[n] = defV;
+                    }
+                    resolveFromJson(d, delay);
+                    resolveFromJson(v, volume);
+                });
+            };
+            this.play = function(n) {
+                var e = 1e3 * (aidn.___waContext.currentTime + delay[n] - lastTime);
+                var t = Math.floor(e / gapTime);
+                if (t == r && l >= 0) {
+                    audioPlayer.stop(l);
+                }
+                r = t;
+                l = n;
+                var i = (gapTime - e % gapTime) / 1e3;
+                audioPlayer.play(n, i, volume[n]);
+            };
+            var player = this, c, e, loadedJson, gapTime = 6e4 / bpm / 2;
         };
-        this.play = function(n, a) {
-            var e = 1e3 * (aidn.___waContext.currentTime + h[n] - lastTime);
-            var t = Math.floor(e / gapTime);
-            if (t == r && l >= 0) {
-                audioPlayer.stop(l);
-            }
-            r = t;
-            l = n;
-            var i = gapTime - e % gapTime;
-            audioPlayer.play(n, i / 1e3, d[n]);
-        };
-        var s = 32;
-        this.length = s;
-        
-        for (var d = [], h = [], n = 0; n < s; n++) {
-            d[n] = 1;
-            h[n] = .05;
-        }
-        
-        h[6] = .08,
-        h[20] = .1,
-        h[23] = .1,
-        d[1] = 1.3,
-        d[2] = 1.6,
-        d[3] = 1.35,
-        d[5] = 1.7,
-        d[9] = .8,
-        d[17] = .8,
-        d[22] = .9,
-        d[25] = .7,
-        d[29] = 1.2;
-        for (n = 0; n < s; n++) {
-            d[n] *= 1.2;
-        }
-        var c, e, gapTime = 6e4 / bpm / 2;
-    };
+    }
+    loadTrack('mikutap');
+    loadVocal('mikuv4x');
     var animatePlayer = new function() {
         var s = function(n, a) {
             this.id = n,
@@ -624,16 +639,15 @@ var MainManager = function() {
             }
             return !1
         }
-        function a(n) {
+        function onKeyDown(n) {
             c(65 <= n.keyCode ? n.keyCode - 55 : 48 <= n.keyCode ? n.keyCode - 48 : n.keyCode)
         }
-        function e(n) {
+        function onKeyUp(n) {
             c(-1)
         }
-        function i(n) {
+        function onMouseDown(n) {
             y = !0;
-            var a = aidn.event.getPos(n)
-              , e = l(a.x, a.y);
+            var a = aidn.event.getPos(n), e = l(a.x, a.y);
             if (c(e),
             n.originalEvent && n.originalEvent.touches)
                 for (var t = n.originalEvent.touches.length, i = 1; i < t; i++) {
@@ -641,31 +655,39 @@ var MainManager = function() {
                     c(e = l(o.pageX, o.pageY), 1)
                 }
         }
-        function o(n) {
+        function onMouseMove(n) {
             if (y) {
                 var a = aidn.event.getPos(n);
                 c(l(a.x, a.y), 0, !0)
             }
             n.preventDefault()
         }
-        function h(n) {
+        function onMouseUp(n) {
             y && (c(-1),
             y = !1)
         }
         function c(n, a, e) {
             var t, i;
-            u != n && (1 != a && (u = n),
-            u < 0 || (vocalPlayer.play(n % vocalPlayer.length, e),
-            D = 90,
-            S && (S = !1,
-            $("#bt_back").stop().fadeOut(200, "linear"),
-            enableFullscreen && $("#bt_fs").stop().fadeOut(200, "linear"),
-            $("#scene_main .set").stop().fadeOut(200, "linear")),
-            --x <= 0 && (i = (t = Math.floor(I.length * Math.random())) + m.length,
-            (C[i].length ? C[i].pop() : new I[t](b,i)).play(),
-            x = 12 * Math.random() + 6),
-            t = n % m.length,
-            (0 < C[t].length ? C[t].pop() : new m[t](b,t)).play()))
+            if (u != n) {
+                if (1 != a) u = n;
+                if (u >= 0) {
+                    vocalPlayer.play(n % vocalPlayer.length);
+                    D = 90;
+                    if (S) {
+                        S = false,
+                        $("#bt_back").stop().fadeOut(200, "linear");
+                        if (enableFullscreen) $("#bt_fs").stop().fadeOut(200, "linear");
+                        $("#scene_main .set").stop().fadeOut(200, "linear");
+                    }
+                    if (--x <= 0) {
+                        i = (t = Math.floor(I.length * Math.random())) + m.length;
+                        (C[i].length ? C[i].pop() : new I[t](b,i)).play();
+                        x = 12 * Math.random() + 6;
+                    }
+                    t = n % m.length;
+                    (0 < C[t].length ? C[t].pop() : new m[t](b,t)).play();
+                }
+            }
         }
         this.resize = function() {
             if (w) {
@@ -697,26 +719,26 @@ var MainManager = function() {
         }
         ,
         this.start = function() {
-            isMobile || ($("#view").on("mousedown", i),
-            $(window).on("mousemove", o),
-            $(window).on("mouseup", h),
-            $(window).on("keydown", a),
-            $(window).on("keyup", e)),
-            (isMobile || window.TouchEvent) && ($("#view").on("touchstart", i),
-            $(window).on("touchmove", o),
-            $(window).on("touchend", h)),
+            isMobile || ($("#view").on("mousedown", onMouseDown),
+            $(window).on("mousemove", onMouseMove),
+            $(window).on("mouseup", onMouseUp),
+            $(window).on("keydown", onKeyDown),
+            $(window).on("keyup", onKeyUp)),
+            (isMobile || window.TouchEvent) && ($("#view").on("touchstart", onMouseDown),
+            $(window).on("touchmove", onMouseMove),
+            $(window).on("touchend", onMouseUp)),
             $("#view").css("cursor", "pointer")
         }
         ,
         this.end = function() {
-            isMobile || ($("#view").off("mousedown", i),
-            $(window).off("mousemove", o),
-            $(window).off("mouseup", h),
-            $(window).off("keydown", a),
-            $(window).off("keyup", e)),
-            (isMobile || window.TouchEvent) && ($("#view").off("touchstart", i),
-            $(window).off("touchmove", o),
-            $(window).off("touchend", h)),
+            isMobile || ($("#view").off("mousedown", onMouseDown),
+            $(window).off("mousemove", onMouseMove),
+            $(window).off("mouseup", onMouseUp),
+            $(window).off("keydown", onKeyDown),
+            $(window).off("keyup", onKeyUp)),
+            (isMobile || window.TouchEvent) && ($("#view").off("touchstart", onMouseDown),
+            $(window).off("touchmove", onMouseMove),
+            $(window).off("touchend", onMouseUp)),
             $("#view").css("cursor", "auto")
         }
         ,
@@ -1740,32 +1762,31 @@ var WebAudioManager = function() {
         }
         else {
             var n = new aidn.WebAudio;
-            n.load(loadedJson[fileNameList[a]], i);
+            n.load(loadedJson[a + '.mp3'], i);
             loadedFiles[a] = n;
         }
     }
-    this.load = function(jsonPath, a, e, t) {
-        l = e,
-        s = t,
-        size = (fileNameList = a).length,
-        manager.length = size,
-        $.getJSON(jsonPath, function(n) {
-            loadedJson = n;
-            i();
-        })
+    this.load = function(json, e, t) {
+        l = e;
+        s = t;
+        size = 0;
+        for (_ in json) size++;
+        manager.length = size;
+        loadedJson = json;
+        i();
     };
-    this.play = function(n, a, e) {
-        if (e < 0) e = 1;
-        if (n < size) {
-            loadedFiles[n].play(0, false, null, 0, e, a);
+    this.play = function(index, delay, volume) {
+        if (volume < 0) volume = 1;
+        if (index < size) {
+            loadedFiles[index].play(0, false, null, 0, volume, delay);
         }
     };
-    this.stop = function(n) {
-        if (n < size) {
-            loadedFiles[n].stop();
+    this.stop = function(index) {
+        if (index < size) {
+            loadedFiles[index].stop();
         }
     };
-    var size, fileNameList, l, s, loadedJson, manager = this, a = -1, loadedFiles = [];
+    var size, l, s, loadedJson, manager = this, a = -1, loadedFiles = [];
     this.length = 0;
     this.now = 0;
 };
