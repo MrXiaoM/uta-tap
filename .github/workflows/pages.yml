@@ -23,7 +23,9 @@ jobs:
         run: |
           npm install uglify-js uglifycss -g
           uglifyjs www/js/utatap.js -o www/js/utatap.js
-          uglifycss www/css/utatap.css > www/css/utatap.css
+          uglifycss www/css/utatap.css > www/css/utatap.min.css
+          rm www/css/utatap.css
+          mv www/css/utatap.min.css www/css/utatap.css
           rm data/README
           mkdir data/vocal data/music
           ls data/vocal>data/vocal.txt
