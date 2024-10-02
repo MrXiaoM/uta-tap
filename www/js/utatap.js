@@ -142,6 +142,25 @@ var MainManager = function() {
         gapTime = 6e4 / bpm / 2;
     }
     updateGapTime();
+    
+    var colorMap = [], overrideColor = false;
+    function useDefaultColorMap() {
+        overrideColor = false;
+        colorMap = [0xCCEEEE, 0x88CCCC, 0x8AD9EC, 0x0EAA9D, 0x109FB1, 0x008899, 0xD49E9E, 0xF5D4C8, 0xEC5685, 0xFC3E77, 0x594F57, 0x312B2D];
+    }
+    useDefaultColorMap();
+    function resolveColorMapOverride(json) {
+        if (!json) return;
+        overrideColor = true;
+        colorMap = [];
+        json.forEach(function(str) {
+            if (str.indexOf("#") == 0) {
+                var color = parseInt(str.substr(1), 16)
+                if (color != undefined) colorMap.push(color);
+            }
+        });
+    }
+
     function showIdleScreen() {
         if (!autoRandomPlayMode && !isUserIdle) {
             isUserIdle = true;
@@ -168,7 +187,8 @@ var MainManager = function() {
         $("#scene_loading").stop().fadeIn(200, "linear");
         if (loadFlag == 2) {
             playStart();
-        } else {
+        } else {        
+            useDefaultColorMap();
             (new aidn.WebAudio).load("");
             tracksPlayer.init(loadDoneCallback, loadingCallback);
         }
@@ -350,6 +370,8 @@ var MainManager = function() {
                     });
                     player.length = audioPlayer.length;
 
+                    resolveColorMapOverride(json.color_map);
+
                     var v = json.volume;
                     var defV = v ? v.default : 1;
                     for (var n = 0; n < player.length; n++) {
@@ -439,6 +461,9 @@ var MainManager = function() {
                         if (progressCallback) progressCallback(progress, size);
                     });
                     player.length = audioPlayer.length;
+                    
+                    resolveColorMapOverride(json.color_map);
+
                     var d = json.d_value;
                     var v = json.volume;
                     var defD = d ? d.default : 0;
@@ -1781,12 +1806,12 @@ var MainManager = function() {
             this.play = function() {
                 !function() {
                     F = w;
-                    var n = X();
+                    var n = randomColorIndex();
                     c = colorMap[n],
                     $("#about").css("background-color", "#" + c.toString(16)),
                     $("#select").css("background-color", "#" + c.toString(16)),
                     Math.random() < .3 && T.flash(p),
-                    O = n,
+                    lastColorIndex = n,
                     y.clear(),
                     y.visible = true,
                     p = v.children.length - 1 - Math.floor(2 * Math.random()),
@@ -1856,22 +1881,25 @@ var MainManager = function() {
         }
         ];
         var T, b, x = 16 * Math.random(), C = [],
-            colorMap = [0xCCEEEE, 0x88CCCC, 0x8AD9EC, 0x0EAA9D, 0x109FB1, 0x008899, 0xD49E9E, 0xF5D4C8, 0xEC5685, 0xFC3E77, 0x594F57, 0x312B2D],
-            _ = colorMap.length, O = 0;
+            lastColorIndex = 0;
         aidn.util.shuffleArray(m);
         for (var g = 0; g < m.length + I.length; g++)
             C[g] = [];
         function getRandomColor() {
-            var n = Math.random();
-            return n < .03 ? 0x444444 : n < .18 ? 0xFFFFFF : colorMap[X()]
+            if (!overrideColor) {
+                var n = Math.random();
+                if (n < 0.03) return 0x444444;
+                if (n < 0.18) return 0xFFFFFF;
+            }
+            return colorMap[randomColorIndex()];
         }
-        function X() {
+        function randomColorIndex() {
             for (var n = 0; n < 10; n++) {
-                var a = Math.floor(_ * Math.random());
-                if (2 < Math.abs(O - a))
+                var index = Math.floor(colorMap.length * Math.random());
+                if (2 < Math.abs(lastColorIndex - index))
                     break
             }
-            return a
+            return index
         }
         var F = 0
     };
