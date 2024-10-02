@@ -131,6 +131,9 @@ html {
 #scene_loading hr {
     width: 0
 }
+#scene_loading p {
+    margin-bottom: 20px;
+}
 
 #scene_main,
 #scene_main .attention {
@@ -339,7 +342,8 @@ a:hover {
     #select .con,
     #select .link,
     #about .con,
-    #about .link {
+    #about .link,
+    #scene_loading p {
         font-size: .9rem
     }
 }
