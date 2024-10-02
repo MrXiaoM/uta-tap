@@ -15,18 +15,22 @@ var MainManager = function() {
             if (animatePlayer) animatePlayer.resize();
         }
     }
-    function loadingCallback(n, a) {
-        a = vocalPlayer.length + tracksPlayer.length;
-        if (pageFlag == 1) {
-            n += tracksPlayer.length;
+    function loadingCallback(progress, size) {
+        size = vocalPlayer.length + tracksPlayer.length;
+        if (loadFlag == 1) {
+            // tracksPlayer 加载完毕，进度加上 tracksPlayer 的进度
+            progress += tracksPlayer.length;
         }
-        var e = (a <= 0) ? "0%" : Math.round(n / a * 100) + "%";
-        $("#scene_loading hr").css("width", e);
+        // 显示总进度
+        var hrWidth = (size <= 0) ? "0%" : Math.round(progress / size * 100) + "%";
+        $("#scene_loading hr").css("width", hrWidth);
     }
-    function t() {
-        if (++pageFlag == 1) {
-            vocalPlayer.init(t, loadingCallback);
-        } else if (pageFlag == 2) {
+    function loadDoneCallback() {
+        if (++loadFlag == 1) {
+             // tracksPlayer 加载完毕，加载 vocalPlayer
+            vocalPlayer.init(loadDoneCallback, loadingCallback);
+        } else if (loadFlag == 2) {
+             // vocalPlayer 加载完毕，开始播放
             playStart();
         }
     }
@@ -67,6 +71,11 @@ var MainManager = function() {
         }
         if (event) event.preventDefault();
     }
+    
+    var l = 0, h = 0, f = 0, c = [], d = Math.floor(32 * Math.random());
+    for (var u = 0; u < 32; u++) {
+        c[u] = u;
+    }
     function update() {
         tracksPlayer.update();
         if (sceneFlag == 1 && --D < 0) {
@@ -74,10 +83,10 @@ var MainManager = function() {
         }
         if (sceneFlag == 1 && autoRandomPlayMode) {
             var n = 1e3 * (aidn.___waContext.currentTime - lastTime);
-            if (l * s < n) {
-                var a = Math.floor(n / s) + 1;
+            if (l * gapTime < n) {
+                var a = Math.floor(n / gapTime) + 1;
                 h += a - l;
-                var e = (l = a) * s - n;
+                var e = (l = a) * gapTime - n;
                 if (0 <= e) {
                     var t = Math.random(), i = 1;
                     if (h >= 192) {
@@ -110,30 +119,30 @@ var MainManager = function() {
         window.requestAnimFrame(update);
     }
     this.init = function() {
-        !function() {
-            aidn.window.addDummyDiv();
-            try {
-                aidn.adv.show();
-            } catch (n) {}
-            var resolution = 1;
-            if (window.devicePixelRatio >= 2) resolution = 2;
-            (renderer = PIXI.autoDetectRenderer(windowWidth, windowHeight, {
-                backgroundColor: 16756655,
-                antialias: false,
-                resolution: resolution
-            })).autoDensity = true;
-            document.getElementById("view").appendChild(renderer.view);
-            renderContainer = new PIXI.Container;
-            animatePlayer.init();
-            onWindowResize();
-            $("#scene_top").fadeIn(300);
-            update();
-        }()
+        aidn.window.addDummyDiv();
+        try {
+            aidn.adv.show();
+        } catch (n) {}
+        var resolution = window.devicePixelRatio >= 2 ? 2 : 1;
+        renderer = PIXI.autoDetectRenderer(windowWidth, windowHeight, {
+            backgroundColor: 0xFFAFAF,
+            antialias: false,
+            resolution: resolution
+        });
+        renderer.autoDensity = true;
+        document.getElementById("view").appendChild(renderer.view);
+        renderContainer = new PIXI.Container;
+        animatePlayer.init();
+        onWindowResize();
+        $("#scene_top").fadeIn(300);
+        update();
     };
-    var l = 0, s = 6e4 / 280, d = Math.floor(32 * Math.random()), h = 0, c = [], f = 0;
-    for (var u = 0; u < 32; u++) {
-        c[u] = u;
+    var bpm = 140, gapTime;
+    function updateGapTime() {
+        // 根据 bpm 更新音符间隔时间
+        gapTime = 6e4 / bpm / 2;
     }
+    updateGapTime();
     function showIdleScreen() {
         if (!autoRandomPlayMode && !S) {
             S = !0;
@@ -155,11 +164,11 @@ var MainManager = function() {
     $("#bt_start a").click(function(n) {
         $("#scene_top").stop().fadeOut(200, "linear");
         $("#scene_loading").stop().fadeIn(200, "linear");
-        if (pageFlag == 2) {
+        if (loadFlag == 2) {
             playStart();
         } else {
             (new aidn.WebAudio).load("");
-            tracksPlayer.init(t, loadingCallback);
+            tracksPlayer.init(loadDoneCallback, loadingCallback);
         }
         try {
             aidn.adv.hide();
@@ -293,8 +302,7 @@ var MainManager = function() {
         reader.readAsText(file);
     });
     var windowWidth, windowHeight, isMobile = aidn.util.checkMobile();
-    var bpm = 140;
-    var lastTime, renderer, renderContainer, pageFlag = 0, sceneFlag = 0;
+    var lastTime, renderer, renderContainer, loadFlag = 0, sceneFlag = 0;
     var tracksPlayer, currentTracksName, vocalPlayer, currentVocalName;
     function resolveFromJson(jsonArray, target) {
         if (jsonArray) for (var i in jsonArray) {
@@ -322,23 +330,20 @@ var MainManager = function() {
         })
     }
     function loadMusicTracks(jsonProvider) {
-        pageFlag = 0;
+        loadFlag = 0;
         sceneFlag = 0;
         tracksPlayer = new function() {
-            function t() {
-                if (c) c()
-            }
-            function i(n, a) {
-                if (f) f(n, a)
-            }
-            var audioPlayer;
-            this.init = function(n, a) {
-                f = a;
-                c = n;
+            var audioPlayer, playing = false,
+                volume = [], tracks = [], player = this,
+                trackLength, progress = 0;
+            this.init = function(loadDone, progressCallback) {
                 jsonProvider(function (json) {
-                    loadedJson = json;
                     audioPlayer = new WebAudioManager;
-                    audioPlayer.load(json.media, t, i);
+                    audioPlayer.load(json.media, function() {
+                        if (loadDone) loadDone();
+                    }, function(n, a) {
+                        if (progressCallback) progressCallback(n, a);
+                    });
                     player.length = audioPlayer.length;
 
                     var v = json.volume;
@@ -350,6 +355,7 @@ var MainManager = function() {
 
                     if (json.bpm != undefined) {
                         bpm = json.bpm;
+                        updateGapTime();
                     }
 
                     tracks = [];
@@ -398,9 +404,6 @@ var MainManager = function() {
                 playing = false;
                 progress = 0;
             };
-            var playing = false;
-            var volume = [], tracks = [];
-            var player = this, c, f, loadedJson, trackLength, progress = 0, gapTime = 6e4 / bpm / 2
         };
     }
     function loadVocalFromName(vocalName) {
@@ -418,24 +421,19 @@ var MainManager = function() {
         })
     }
     function loadVocal(jsonProvider) {
-        pageFlag = 0;
+        loadFlag = 0;
         sceneFlag = 0;
         vocalPlayer = new function() {
-            var audioPlayer, r = -1, l = -1;
-            function t() {
-                if (c) c();
-            }
-            function i(n, a) {
-                if (e) e(n, a);
-            }
-            var volume = [], delay = [];
-            this.init = function(n, a) {
-                e = a;
-                c = n;
+            var audioPlayer, r = -1, currentIndex = -1,
+                player = this, volume = [], delay = [];
+            this.init = function(loadDone, progressCallback) {
                 jsonProvider(function(json) {
-                    loadedJson = json;
                     audioPlayer = new WebAudioManager;
-                    audioPlayer.load(json.media, t, i);
+                    audioPlayer.load(json.media, function() {
+                        if (loadDone) loadDone();
+                    }, function(progress, size) {
+                        if (progressCallback) progressCallback(progress, size);
+                    });
                     player.length = audioPlayer.length;
                     var d = json.d_value;
                     var v = json.volume;
@@ -450,18 +448,17 @@ var MainManager = function() {
                     resolveFromJson(v, volume);
                 });
             };
-            this.play = function(n) {
-                var e = 1e3 * (aidn.___waContext.currentTime + delay[n] - lastTime);
+            this.play = function(index) {
+                var e = 1e3 * (aidn.___waContext.currentTime + delay[index] - lastTime);
                 var t = Math.floor(e / gapTime);
-                if (t == r && l >= 0) {
-                    audioPlayer.stop(l);
+                if (t == r && currentIndex >= 0) {
+                    audioPlayer.stop(currentIndex);
                 }
                 r = t;
-                l = n;
+                currentIndex = index;
                 var i = (gapTime - e % gapTime) / 1e3;
-                audioPlayer.play(n, i, volume[n]);
+                audioPlayer.play(index, i, volume[index]);
             };
-            var player = this, c, e, loadedJson, gapTime = 6e4 / bpm / 2;
         };
     }
     loadDefaultVocalAndTracks();
@@ -1879,25 +1876,29 @@ var MainManager = function() {
     aidn.window.resize(onWindowResize);
 };
 var WebAudioManager = function() {
-    function i() {
-        manager.now = ++a;
-        if (s && s(a, size), size <= a) {
-            if (l) l();
+    var manager = this, size, onLoadDone, onProgressCallback,
+        loadedJson, loadedFiles = [], progress = -1;
+    this.length = 0;
+    this.now = 0;
+    function doLoadAudio() {
+        manager.now = ++progress;
+        if (onProgressCallback && onProgressCallback(progress, size), size <= progress) {
+            if (onLoadDone) onLoadDone();
         }
         else {
-            var n = new aidn.WebAudio;
-            n.load(loadedJson[a + '.mp3'], i);
-            loadedFiles[a] = n;
+            var audio = new aidn.WebAudio;
+            audio.load(loadedJson[progress + '.mp3'], doLoadAudio);
+            loadedFiles[progress] = audio;
         }
     }
-    this.load = function(json, e, t) {
-        l = e;
-        s = t;
+    this.load = function(json, loadDone, progressCallback) {
+        onLoadDone = loadDone;
+        onProgressCallback = progressCallback;
         size = 0;
         for (_ in json) size++;
         manager.length = size;
         loadedJson = json;
-        i();
+        doLoadAudio();
     };
     this.play = function(index, delay, volume) {
         if (volume < 0) volume = 1;
@@ -1910,7 +1911,4 @@ var WebAudioManager = function() {
             loadedFiles[index].stop();
         }
     };
-    var size, l, s, loadedJson, manager = this, a = -1, loadedFiles = [];
-    this.length = 0;
-    this.now = 0;
 };
