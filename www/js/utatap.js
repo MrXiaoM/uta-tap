@@ -3,10 +3,9 @@ $(function() {
 });
 var MainManager = function() {
     aidn.util.useDummyDiv();
-    function loadDefaultVocalAndTracks() {
-        loadMusicTracksFromName('mikutap');
-        loadVocalFromName('mikuv4x');
-    }
+    var query = aidn.util.getQuery();
+    var defaultVocalName = query.vocal || "mikuv4x",
+        defaultTracksName = query.music || query.tracks || "mikutap";
     function onWindowResize() {
         windowWidth = aidn.window.width();
         windowHeight = aidn.window.height();
@@ -77,7 +76,7 @@ var MainManager = function() {
         c[u] = u;
     }
     function update() {
-        tracksPlayer.update();
+        if (tracksPlayer) tracksPlayer.update();
         if (sceneFlag == 1 && --D < 0) {
             showIdleScreen();
         }
@@ -151,8 +150,7 @@ var MainManager = function() {
             $("#scene_main .set").stop().fadeIn(200, "linear");
         }
     }
-    var autoRandomPlayMode = false;
-    if (aidn.util.getQuery().auto == 1) autoRandomPlayMode = true;
+    var autoRandomPlayMode = query.auto == 1;
     aidn.util.needExpandArea(true);
     var enableFullscreen = aidn.util.enabledFullscreen();
     if (enableFullscreen) {
@@ -162,6 +160,10 @@ var MainManager = function() {
         });
     }
     $("#bt_start a").click(function(n) {
+        if (!tracksPlayer || !vocalPlayer) {
+            window.alert('还没有载入歌姬或背景音轨');
+            return;
+        }
         $("#scene_top").stop().fadeOut(200, "linear");
         $("#scene_loading").stop().fadeIn(200, "linear");
         if (loadFlag == 2) {
@@ -245,6 +247,7 @@ var MainManager = function() {
             for (var i in lines) {
                 var str = lines[i].replace('.json', '');
                 if (str.trim().length > 0) {
+                    if (str == defaultTracksName) loadMusicTracksFromName(str);
                     var checked = currentTracksName == str ? " checked" : "";
                     tracks.append(
 `<li class="option">
@@ -267,6 +270,7 @@ var MainManager = function() {
             for (var i in lines) {
                 var str = lines[i].replace('.json', '');
                 if (str.trim().length > 0) {
+                    if (str == defaultVocalName) loadVocalFromName(str);
                     var checked = currentVocalName == str ? " checked" : "";
                     vocals.append(
 `<li class="option">
@@ -461,7 +465,6 @@ var MainManager = function() {
             };
         };
     }
-    loadDefaultVocalAndTracks();
     var animatePlayer = new function() {
         var s = function(n, a) {
             this.id = n,
