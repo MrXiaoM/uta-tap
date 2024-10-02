@@ -4,8 +4,8 @@ $(function() {
 var MainManager = function() {
     aidn.util.useDummyDiv();
     var query = aidn.util.getQuery();
-    var defaultVocalName = query.vocal || "mikuv4x",
-        defaultTracksName = query.music || query.tracks || "mikutap";
+    var defaultVocalName = decodeURIComponent(query.vocal || "mikuv4x"),
+        defaultTracksName = decodeURIComponent(query.music || query.tracks || "mikutap");
     function onWindowResize() {
         windowWidth = aidn.window.width();
         windowHeight = aidn.window.height();
