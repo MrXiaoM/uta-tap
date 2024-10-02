@@ -347,10 +347,18 @@ var MainManager = function() {
         })
     }
     function loadMusicTracksFromJson(json) {
+        var loadedJson;
+        try {
+            loadedJson = $.parseJSON(json);
+        } catch(e) {
+            console.error(e);
+            window.alert("背景音轨配置加载错误");
+            return;
+        }
         currentTracksName = "*自定义*";
         updateSelectState();
         loadMusicTracks(function(done) {
-            done($.parseJSON(json));
+            done(loadedJson);
         })
     }
     function loadMusicTracks(jsonProvider) {
@@ -440,10 +448,18 @@ var MainManager = function() {
         })
     }
     function loadVocalFromJson(json) {
+        var loadedJson;
+        try {
+            loadedJson = $.parseJSON(json);
+        } catch(e) {
+            console.error(e);
+            window.alert("歌姬配置加载错误");
+            return;
+        }
         currentVocalName = "*自定义*";
         updateSelectState();
         loadVocal(function(done) {
-            done($.parseJSON(json));
+            done(loadedJson);
         })
     }
     function loadVocal(jsonProvider) {
