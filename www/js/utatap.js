@@ -109,7 +109,7 @@ var MainManager = function() {
                             f = 0;
                             aidn.util.shuffleArray(c);
                         }
-                        animatePlayer.changeId(d, 0, !0);
+                        animatePlayer.changeId(d, 0, true);
                     }
                 }
             }
@@ -143,8 +143,8 @@ var MainManager = function() {
     }
     updateGapTime();
     function showIdleScreen() {
-        if (!autoRandomPlayMode && !S) {
-            S = !0;
+        if (!autoRandomPlayMode && !isUserIdle) {
+            isUserIdle = true;
             $("#bt_back").stop().fadeIn(200, "linear");
             if (enableFullscreen) $("#bt_fs").stop().fadeIn(200, "linear");
             $("#scene_main .set").stop().fadeIn(200, "linear");
@@ -500,7 +500,7 @@ var MainManager = function() {
               , i = 0
               , o = 0
               , r = new PIXI.Graphics;
-            r.interactive = !0,
+            r.interactive = true,
             a.addChild(r)
         }
           , n = function(n) {
@@ -619,7 +619,7 @@ var MainManager = function() {
                 w.lineTo(a, e)
             }
             function c() {
-                w.visible = !1,
+                w.visible = false,
                 e && e()
             }
             this.play = function(n, a) {
@@ -627,10 +627,10 @@ var MainManager = function() {
                 e = a,
                 function() {
                     y.setChildIndex(w, y.children.length - 1),
-                    w.visible = !0,
+                    w.visible = true,
                     w.x = windowWidth / 2,
                     w.y = windowHeight / 2,
-                    u = L();
+                    u = getRandomColor();
                     var n, a = Math.min(windowWidth, windowHeight) * (.32 * Math.random() + .16), e = Math.floor(5 * Math.random()) + 3;
                     p = e,
                     v = 5 * Math.random() + 3,
@@ -687,10 +687,10 @@ var MainManager = function() {
                         onUpdate: i,
                         onComplete: o
                     })) : (v.clear(),
-                    v.visible = !1)
+                    v.visible = false)
                 }
                 this.play = function(n, a, e, t) {
-                    return v.visible = !0,
+                    return v.visible = true,
                     u = 0,
                     r = n,
                     l = a,
@@ -716,7 +716,7 @@ var MainManager = function() {
                 a.addChild(v)
             };
             function u() {
-                y.visible = !1,
+                y.visible = false,
                 0 <= v.id && C[v.id].push(v),
                 e && e()
             }
@@ -724,11 +724,11 @@ var MainManager = function() {
                 e = n,
                 function() {
                     p.setChildIndex(y, p.children.length - 1),
-                    y.visible = !0,
+                    y.visible = true,
                     y.x = windowWidth / 2,
                     y.y = windowHeight / 2,
                     y.rotation = .5 * Math.PI * Math.floor(4 * Math.random());
-                    for (var n, a = Math.floor(7 * Math.random() + 2), e = .8 * Math.min(windowWidth, windowHeight), t = (v.size = e) / a * (.4 * Math.random() + .7), i = e / a * (.4 * Math.random() + .1), o = L(), r = 0, l = 0; l <= a; l++) {
+                    for (var n, a = Math.floor(7 * Math.random() + 2), e = .8 * Math.min(windowWidth, windowHeight), t = (v.size = e) / a * (.4 * Math.random() + .7), i = e / a * (.4 * Math.random() + .1), o = getRandomColor(), r = 0, l = 0; l <= a; l++) {
                         var s = (l - .5 * a) * t
                           , d = {
                             x: -e / 2,
@@ -761,44 +761,51 @@ var MainManager = function() {
                     return u != i.id && i.play(),
                     i.id
             }
-            return !1
+            return false
         }
         function onKeyDown(n) {
-            c(65 <= n.keyCode ? n.keyCode - 55 : 48 <= n.keyCode ? n.keyCode - 48 : n.keyCode)
+            var index = n.keyCode;
+            if (65 <= n.keyCode) index = n.keyCode - 55;
+            else if (48 <= n.keyCode) index = n.keyCode - 48;
+            clickLaunchPad(index)
         }
         function onKeyUp(n) {
-            c(-1)
+            clickLaunchPad(-1)
         }
         function onMouseDown(n) {
-            y = !0;
+            mouseDownFlag = true;
             var a = aidn.event.getPos(n), e = l(a.x, a.y);
-            if (c(e),
-            n.originalEvent && n.originalEvent.touches)
-                for (var t = n.originalEvent.touches.length, i = 1; i < t; i++) {
+            if (clickLaunchPad(e), n.originalEvent && n.originalEvent.touches) {
+                var t = n.originalEvent.touches.length;
+                for (var i = 1; i < t; i++) {
                     var o = n.originalEvent.touches[i];
-                    c(e = l(o.pageX, o.pageY), 1)
+                    e = l(o.pageX, o.pageY);
+                    clickLaunchPad(e, 1);
                 }
+            }
         }
         function onMouseMove(n) {
-            if (y) {
+            if (mouseDownFlag) {
                 var a = aidn.event.getPos(n);
-                c(l(a.x, a.y), 0, !0)
+                clickLaunchPad(l(a.x, a.y), 0)
             }
             n.preventDefault()
         }
         function onMouseUp(n) {
-            y && (c(-1),
-            y = !1)
+            if (mouseDownFlag) {
+                clickLaunchPad(-1);
+                mouseDownFlag = false;
+            }
         }
-        function c(n, a, e) {
+        function clickLaunchPad(index, a) {
             var t, i;
-            if (u != n) {
-                if (1 != a) u = n;
+            if (u != index) {
+                if (a != 1) u = index;
                 if (u >= 0) {
-                    vocalPlayer.play(n % vocalPlayer.length);
+                    vocalPlayer.play(index % vocalPlayer.length);
                     D = 90;
-                    if (S) {
-                        S = false,
+                    if (isUserIdle) {
+                        isUserIdle = false;
                         $("#bt_back").stop().fadeOut(200, "linear");
                         if (enableFullscreen) $("#bt_fs").stop().fadeOut(200, "linear");
                         $("#scene_main .set").stop().fadeOut(200, "linear");
@@ -808,7 +815,7 @@ var MainManager = function() {
                         (C[i].length ? C[i].pop() : new I[t](b,i)).play();
                         x = 12 * Math.random() + 6;
                     }
-                    t = n % m.length;
+                    t = index % m.length;
                     (0 < C[t].length ? C[t].pop() : new m[t](b,t)).play();
                 }
             }
@@ -832,51 +839,55 @@ var MainManager = function() {
                 T.resize()
             }
         }
-        ,
         this.init = function() {
-            w = !0,
-            b = new PIXI.Container,
-            renderContainer.addChild(b),
-            f = new PIXI.Container,
-            renderContainer.addChild(f),
-            (T = new n(b)).setColor(8965324, 0)
+            w = true;
+            b = new PIXI.Container;
+            renderContainer.addChild(b);
+            f = new PIXI.Container;
+            renderContainer.addChild(f);
+            T = new n(b);
+            T.setColor(0x88CCCC, 0);
         }
-        ,
         this.start = function() {
-            isMobile || ($("#view").on("mousedown", onMouseDown),
-            $(window).on("mousemove", onMouseMove),
-            $(window).on("mouseup", onMouseUp),
-            $(window).on("keydown", onKeyDown),
-            $(window).on("keyup", onKeyUp)),
-            (isMobile || window.TouchEvent) && ($("#view").on("touchstart", onMouseDown),
-            $(window).on("touchmove", onMouseMove),
-            $(window).on("touchend", onMouseUp)),
-            $("#view").css("cursor", "pointer")
+            if (!isMobile) {
+                $("#view").on("mousedown", onMouseDown);
+                $(window).on("mousemove", onMouseMove);
+                $(window).on("mouseup", onMouseUp);
+                $(window).on("keydown", onKeyDown);
+                $(window).on("keyup", onKeyUp);
+            }
+            else if (window.TouchEvent) {
+                $("#view").on("touchstart", onMouseDown);
+                $(window).on("touchmove", onMouseMove);
+                $(window).on("touchend", onMouseUp);
+            }
+            $("#view").css("cursor", "pointer");
         }
-        ,
         this.end = function() {
-            isMobile || ($("#view").off("mousedown", onMouseDown),
-            $(window).off("mousemove", onMouseMove),
-            $(window).off("mouseup", onMouseUp),
-            $(window).off("keydown", onKeyDown),
-            $(window).off("keyup", onKeyUp)),
-            (isMobile || window.TouchEvent) && ($("#view").off("touchstart", onMouseDown),
-            $(window).off("touchmove", onMouseMove),
-            $(window).off("touchend", onMouseUp)),
-            $("#view").css("cursor", "auto")
+            if (!isMobile) {
+                $("#view").off("mousedown", onMouseDown);
+                $(window).off("mousemove", onMouseMove);
+                $(window).off("mouseup", onMouseUp);
+                $(window).off("keydown", onKeyDown);
+                $(window).off("keyup", onKeyUp);
+            }
+            else if (window.TouchEvent) {
+                $("#view").off("touchstart", onMouseDown);
+                $(window).off("touchmove", onMouseMove);
+                $(window).off("touchend", onMouseUp);
+            }
+            $("#view").css("cursor", "auto");
         }
-        ,
         this.changeId = function(n, a, e) {
-            c(n, a, e)
+            clickLaunchPad(n, a, e)
         }
-        ;
-        var f, u = -1, v = 4, p = 8, y = !1, w = !1, M = [], m = [function(n, a) {
+        var f, u = -1, v = 4, p = 8, mouseDownFlag = false, w = false, M = [], m = [function(n, a) {
             var s = function(n) {
                 function l() {
-                    s.visible = !1
+                    s.visible = false
                 }
                 this.play = function(n, a, e) {
-                    s.visible = !0,
+                    s.visible = true,
                     s.clear();
                     var t = windowWidth * Math.random()
                       , i = windowHeight * Math.random()
@@ -909,14 +920,14 @@ var MainManager = function() {
                 a.addChild(s)
             };
             function d() {
-                f.visible = !1,
+                f.visible = false,
                 C[e.id].push(e)
             }
             this.play = function() {
                 !function() {
                     h.setChildIndex(f, h.children.length - 1),
-                    f.visible = !0;
-                    for (var n = 5 * Math.random() + 7, a = 0, e = windowWidth / 2, t = windowHeight / 2, i = L(), o = 0; o < n; o++) {
+                    f.visible = true;
+                    for (var n = 5 * Math.random() + 7, a = 0, e = windowWidth / 2, t = windowHeight / 2, i = getRandomColor(), o = 0; o < n; o++) {
                         var r;
                         r = c[o] ? c[o] : new s(f);
                         var l = (c[o] = r).play(e, t, i);
@@ -936,10 +947,10 @@ var MainManager = function() {
         , function(n, a) {
             var s = function(n) {
                 function l() {
-                    s.visible = !1
+                    s.visible = false
                 }
                 this.play = function(n, a, e) {
-                    s.visible = !0,
+                    s.visible = true,
                     s.clear();
                     var t = windowWidth * Math.random()
                       , i = windowHeight * Math.random()
@@ -972,14 +983,14 @@ var MainManager = function() {
                 a.addChild(s)
             };
             function d() {
-                f.visible = !1,
+                f.visible = false,
                 C[e.id].push(e)
             }
             this.play = function() {
                 !function() {
                     h.setChildIndex(f, h.children.length - 1),
-                    f.visible = !0;
-                    for (var n = 5 * Math.random() + 7, a = 0, e = windowWidth / 2, t = windowHeight / 2, i = L(), o = 0; o < n; o++) {
+                    f.visible = true;
+                    for (var n = 5 * Math.random() + 7, a = 0, e = windowWidth / 2, t = windowHeight / 2, i = getRandomColor(), o = 0; o < n; o++) {
                         var r;
                         r = c[o] ? c[o] : new s(f);
                         var l = (c[o] = r).play(e, t, i);
@@ -1020,11 +1031,11 @@ var MainManager = function() {
                     })
                 }
                 function e() {
-                    h.visible = !1,
+                    h.visible = false,
                     d && d()
                 }
                 this.play = function(n, a, e, t, i, o) {
-                    h.visible = !0,
+                    h.visible = true,
                     h.clear(),
                     h.x = t,
                     h.y = i,
@@ -1038,17 +1049,17 @@ var MainManager = function() {
                 t.addChild(h)
             };
             function c() {
-                v.visible = !1,
+                v.visible = false,
                 C[e.id].push(e)
             }
             this.play = function() {
                 !function() {
                     f.setChildIndex(v, f.children.length - 1),
-                    v.visible = !0,
+                    v.visible = true,
                     v.x = windowWidth / 2,
                     v.y = windowHeight / 2,
                     v.rotation = Math.random() * Math.PI * 2;
-                    for (var n = 10, a = L(), e = Math.min(windowWidth, windowHeight) / 64 * (.6 * Math.random() + .7), t = 2, i = 0; i < 40; i++) {
+                    for (var n = 10, a = getRandomColor(), e = Math.min(windowWidth, windowHeight) / 64 * (.6 * Math.random() + .7), t = 2, i = 0; i < 40; i++) {
                         var o, r = 25 * i * Math.PI / 180, l = n * Math.cos(r), s = n * Math.sin(r);
                         n += e,
                         t += .22,
@@ -1096,16 +1107,16 @@ var MainManager = function() {
         }
         , function(n, a) {
             function h() {
-                f.visible = !1,
+                f.visible = false,
                 C[e.id].push(e)
             }
             this.play = function() {
                 !function() {
                     c.setChildIndex(f, c.children.length - 1),
-                    f.visible = !0,
+                    f.visible = true,
                     f.x = windowWidth / 2,
                     f.y = windowHeight / 2;
-                    var n = L()
+                    var n = getRandomColor()
                       , a = Math.min(windowWidth, windowHeight) * (.28 * Math.random() + .2)
                       , e = Math.floor(5 * Math.random()) + 3;
                     u.clear(),
@@ -1145,7 +1156,7 @@ var MainManager = function() {
                 function e() {
                     var n = Math.min(windowWidth, windowHeight)
                       , a = n * (.08 * Math.random() + .05);
-                    l.lineStyle(4 * Math.random() + 4, L()),
+                    l.lineStyle(4 * Math.random() + 4, getRandomColor()),
                     l.drawRect(-a / 2, -a / 2, a, a),
                     l.x = o + n / 2 * (Math.random() - .5),
                     l.y = r + n / 2 * (Math.random() - .5),
@@ -1185,10 +1196,10 @@ var MainManager = function() {
                     })
                 }
                 function i() {
-                    l.visible = !1
+                    l.visible = false
                 }
                 this.play = function(n, a) {
-                    l.visible = !0,
+                    l.visible = true,
                     l.clear(),
                     o = windowWidth * Math.random(),
                     r = windowHeight * Math.random(),
@@ -1199,13 +1210,13 @@ var MainManager = function() {
                 a.addChild(l)
             };
             function o() {
-                l.visible = !1,
+                l.visible = false,
                 C[e.id].push(e)
             }
             this.play = function() {
                 !function() {
                     r.setChildIndex(l, r.children.length - 1),
-                    l.visible = !0;
+                    l.visible = true;
                     for (var n = Math.floor(5 * Math.random() + 5), a = 0; a < n; a++) {
                         var e;
                         e = s[a] ? s[a] : new i(l),
@@ -1228,7 +1239,7 @@ var MainManager = function() {
             var i = function(n) {
                 function e() {
                     var n = Math.min(windowWidth, windowHeight) * (.05 * Math.random() + .014);
-                    l.beginFill(L()),
+                    l.beginFill(getRandomColor()),
                     l.drawCircle(0, 0, n),
                     l.x = i,
                     l.y = o,
@@ -1251,10 +1262,10 @@ var MainManager = function() {
                     })
                 }
                 function t() {
-                    l.visible = !1
+                    l.visible = false
                 }
                 this.play = function(n, a) {
-                    l.visible = !0,
+                    l.visible = true,
                     l.clear(),
                     i = windowWidth * Math.random(),
                     o = windowHeight * Math.random(),
@@ -1265,13 +1276,13 @@ var MainManager = function() {
                 r.addChild(l)
             };
             function o() {
-                l.visible = !1,
+                l.visible = false,
                 C[e.id].push(e)
             }
             this.play = function() {
                 !function() {
                     r.setChildIndex(l, r.children.length - 1),
-                    l.visible = !0;
+                    l.visible = true;
                     for (var n = Math.floor(5 * Math.random() + 5), a = 0; a < n; a++) {
                         var e;
                         e = s[a] ? s[a] : new i(l),
@@ -1292,12 +1303,12 @@ var MainManager = function() {
         }
         , function(n, a) {
             function o() {
-                l.visible = !1,
+                l.visible = false,
                 C[e.id].push(e)
             }
             this.play = function() {
                 !function() {
-                    l.visible = !0,
+                    l.visible = true,
                     r.setChildIndex(l, r.children.length - 1),
                     d.container.mask = s,
                     d.play(o);
@@ -1347,15 +1358,15 @@ var MainManager = function() {
         }
         , function(n, a) {
             function d() {
-                c.visible = !1,
+                c.visible = false,
                 C[e.id].push(e)
             }
             this.play = function() {
                 !function() {
                     h.setChildIndex(c, h.children.length - 1),
                     c.clear(),
-                    c.visible = !0,
-                    c.lineStyle(5 * Math.random() + 3, L(), 1),
+                    c.visible = true,
+                    c.lineStyle(5 * Math.random() + 3, getRandomColor(), 1),
                     c.x = windowWidth / 2,
                     c.y = windowHeight / 2;
                     for (var n = .6 * Math.min(windowWidth, windowHeight), a = Math.floor(5 * Math.random()) + 3, e = 360 / a, t = .5 * Math.max(windowWidth, windowHeight) / n * (1.6 + .6 / a), i = 0; i <= a; i++) {
@@ -1391,16 +1402,16 @@ var MainManager = function() {
         }
         , function(n, a) {
             function e() {
-                o.visible = !1,
+                o.visible = false,
                 C[t.id].push(t)
             }
             this.play = function() {
                 !function() {
                     i.setChildIndex(o, i.children.length - 1),
-                    o.visible = !0,
+                    o.visible = true,
                     o.x = windowWidth / 2,
                     o.y = windowHeight / 2;
-                    var n = L()
+                    var n = getRandomColor()
                       , a = Math.min(windowWidth, windowHeight) * (.25 * Math.random() + .1);
                     r.clear(),
                     r.beginFill(n),
@@ -1435,7 +1446,7 @@ var MainManager = function() {
                     })
                 }
                 function a() {
-                    l.visibloe = !1,
+                    l.visibloe = false,
                     i && i()
                 }
                 this.init = function(n, a, e, t) {
@@ -1449,7 +1460,7 @@ var MainManager = function() {
                 this.play = function(n, a) {
                     i = a,
                     l.clear(),
-                    l.visibloe = !0,
+                    l.visibloe = true,
                     l.beginFill(r),
                     l.drawRect(.5 * -o, .5 * -o, o, o),
                     gsap.fromTo(l.scale, .3, {
@@ -1483,20 +1494,20 @@ var MainManager = function() {
                 e.addChild(l)
             };
             function v() {
-                y.visible = !1,
+                y.visible = false,
                 C[e.id].push(e)
             }
             this.play = function() {
                 !function() {
                     p.setChildIndex(y, p.children.length - 1),
-                    y.visible = !0,
+                    y.visible = true,
                     y.x = windowWidth / 2,
                     y.y = windowHeight / 2;
                     var n = Math.floor(8 * Math.random() + 6)
                       , a = Math.min(windowWidth, windowHeight) * (.25 * Math.random() + .25)
                       , e = 360 / n
                       , t = a * (.15 * Math.random() + .05)
-                      , i = L()
+                      , i = getRandomColor()
                       , o = Math.PI / 2 * Math.floor(4 * Math.random())
                       , r = 1;
                     Math.random() < .5 && (r = -1);
@@ -1540,7 +1551,7 @@ var MainManager = function() {
                     })
                 }
                 function t() {
-                    l.visibloe = !1,
+                    l.visibloe = false,
                     i && i()
                 }
                 this.init = function(n, a, e, t) {
@@ -1554,7 +1565,7 @@ var MainManager = function() {
                 this.play = function(n, a) {
                     i = a,
                     l.clear(),
-                    l.visibloe = !0,
+                    l.visibloe = true,
                     l.beginFill(r),
                     l.drawCircle(0, 0, .5 * o),
                     gsap.fromTo(l.scale, .3, {
@@ -1573,20 +1584,20 @@ var MainManager = function() {
                 a.addChild(l)
             };
             function v() {
-                y.visible = !1,
+                y.visible = false,
                 C[e.id].push(e)
             }
             this.play = function() {
                 !function() {
                     p.setChildIndex(y, p.children.length - 1),
-                    y.visible = !0,
+                    y.visible = true,
                     y.x = windowWidth / 2,
                     y.y = windowHeight / 2;
                     var n = Math.floor(8 * Math.random() + 6)
                       , a = Math.min(windowWidth, windowHeight) * (.2 * Math.random() + .25)
                       , e = 360 / n
                       , t = a * (.2 * Math.random() + .05)
-                      , i = L()
+                      , i = getRandomColor()
                       , o = Math.PI / 2 * Math.floor(4 * Math.random())
                       , r = 1;
                     Math.random() < .5 && (r = -1);
@@ -1611,16 +1622,16 @@ var MainManager = function() {
         }
         , function(n, a) {
             function i() {
-                r.visible = !1,
+                r.visible = false,
                 C[e.id].push(e)
             }
             this.play = function() {
                 !function() {
-                    r.visible = !0,
+                    r.visible = true,
                     o.setChildIndex(r, o.children.length - 1),
                     r.x = .2 * windowWidth + .6 * windowWidth * Math.random(),
                     r.y = .2 * windowHeight + .6 * windowHeight * Math.random();
-                    var n, a = Math.min(windowWidth, windowHeight) * (.7 + .2 * Math.random()), e = a / 10 * (.5 + .8 * Math.random()), t = L();
+                    var n, a = Math.min(windowWidth, windowHeight) * (.7 + .2 * Math.random()), e = a / 10 * (.5 + .8 * Math.random()), t = getRandomColor();
                     l.clear(),
                     l.beginFill(t),
                     l.drawRect(0, -e / 2, a, e),
@@ -1708,7 +1719,7 @@ var MainManager = function() {
             this.play = function() {
                 !function() {
                     u.clear(),
-                    u.visible = !0,
+                    u.visible = true,
                     Math.random() < .5 ? (u.x = 0,
                     u.y = 0,
                     u.rotation = 0) : (u.x = windowWidth,
@@ -1717,7 +1728,7 @@ var MainManager = function() {
                     c = l = 0,
                     r = Math.floor(3 * Math.random()) + 3,
                     s = 20 * Math.random() + 2,
-                    d = L();
+                    d = getRandomColor();
                     var n, a = Math.random() < .5;
                     n = a ? windowWidth / r : windowHeight / r;
                     for (var e = 0; e <= r; e++) {
@@ -1764,20 +1775,20 @@ var MainManager = function() {
             }
             function h() {
                 F == w && T.setColor(c, p - 1),
-                y.visible = !1,
+                y.visible = false,
                 C[u.id].push(u)
             }
             this.play = function() {
                 !function() {
                     F = w;
                     var n = X();
-                    c = P[n],
+                    c = colorMap[n],
                     $("#about").css("background-color", "#" + c.toString(16)),
                     $("#select").css("background-color", "#" + c.toString(16)),
                     Math.random() < .3 && T.flash(p),
                     O = n,
                     y.clear(),
-                    y.visible = !0,
+                    y.visible = true,
                     p = v.children.length - 1 - Math.floor(2 * Math.random()),
                     v.setChildIndex(y, p);
                     var a = Math.random() < .5
@@ -1844,13 +1855,15 @@ var MainManager = function() {
             var w = Math.floor(aidn.util.getTime())
         }
         ];
+        var T, b, x = 16 * Math.random(), C = [],
+            colorMap = [0xCCEEEE, 0x88CCCC, 0x8AD9EC, 0x0EAA9D, 0x109FB1, 0x008899, 0xD49E9E, 0xF5D4C8, 0xEC5685, 0xFC3E77, 0x594F57, 0x312B2D],
+            _ = colorMap.length, O = 0;
         aidn.util.shuffleArray(m);
-        for (var b, x = 16 * Math.random(), C = [], g = 0; g < m.length + I.length; g++)
+        for (var g = 0; g < m.length + I.length; g++)
             C[g] = [];
-        var T, P = [13430510, 8965324, 9099756, 961181, 1089457, 34969, 13934238, 16110792, 15488645, 16531063, 5853015, 3222317], k = [13430510, 8965324, 9099756, 961181, 1089457, 34969, 13934238, 16110792, 15488645, 16531063, 5853015, 3222317], _ = P.length, O = 0;
-        function L() {
+        function getRandomColor() {
             var n = Math.random();
-            return n < .03 ? 4473924 : n < .18 ? 16777215 : k[X()]
+            return n < .03 ? 0x444444 : n < .18 ? 0xFFFFFF : colorMap[X()]
         }
         function X() {
             for (var n = 0; n < 10; n++) {
@@ -1862,7 +1875,7 @@ var MainManager = function() {
         }
         var F = 0
     };
-    var S = !1, D = 0;
+    var isUserIdle = false, D = 0;
     var settingsFeedback = "off" == aidn.util.getCookie("fb");
     var settingsBackgroundTrack = "off" == aidn.util.getCookie("bt");
     onFeedbackClick();
