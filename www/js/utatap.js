@@ -245,7 +245,6 @@ var MainManager = function() {
             $("#file_music").parent().addClass('selected');
         } else {
             $('input[type="radio"][name="tracks"][value="' + currentTracksName + '"]').parent().addClass('selected');
-            $("#file_music").val('');
         }
         if (currentVocalName == "*自定义*") {
             var vocals = $('input[type="radio"][name="vocals"]');
@@ -255,8 +254,9 @@ var MainManager = function() {
             $("#file_vocal").parent().addClass('selected');
         } else {
             $('input[type="radio"][name="vocals"][value="' + currentVocalName + '"]').parent().addClass('selected');
-            $("#file_vocal").val('');
         }
+        $("#file_music").val('');
+        $("#file_vocal").val('');
     }
     function loadSelectList() {
         fetch("data/music.txt", {cache: "no-store"})
