@@ -371,12 +371,13 @@ var MainManager = function() {
             this.init = function(loadDone, progressCallback) {
                 jsonProvider(function (json) {
                     audioPlayer = new WebAudioManager;
-                    audioPlayer.load(json.media, function() {
+                    audioPlayer.load(json.media, function(len) {
+                        player.length = len;
+                    }, function() {
                         if (loadDone) loadDone();
                     }, function(n, a) {
                         if (progressCallback) progressCallback(n, a);
                     });
-                    player.length = audioPlayer.length;
 
                     resolveColorMapOverride(json.color_map);
 
@@ -471,12 +472,13 @@ var MainManager = function() {
             this.init = function(loadDone, progressCallback) {
                 jsonProvider(function(json) {
                     audioPlayer = new WebAudioManager;
-                    audioPlayer.load(json.media, function() {
+                    audioPlayer.load(json.media, function(len) {
+                        player.length = len;
+                    }, function() {
                         if (loadDone) loadDone();
                     }, function(progress, size) {
                         if (progressCallback) progressCallback(progress, size);
                     });
-                    player.length = audioPlayer.length;
                     
                     resolveColorMapOverride(json.color_map);
 
@@ -1951,12 +1953,13 @@ var WebAudioManager = function() {
             loadedFiles[progress] = audio;
         }
     }
-    this.load = function(json, loadDone, progressCallback) {
+    this.load = function(json, lengthCallback, loadDone, progressCallback) {
         onLoadDone = loadDone;
         onProgressCallback = progressCallback;
         size = 0;
         for (_ in json) size++;
         manager.length = size;
+        if (lengthCallback) lengthCallback(size);
         loadedJson = json;
         doLoadAudio();
     };
