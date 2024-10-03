@@ -65,6 +65,12 @@ html {
     right: 0
 }
 
+#scene_loading,
+.container_vocal,
+.container_tracks {
+    user-select: none;
+}
+
 #scene_main,
 #scene_top {
     width: 90%;
