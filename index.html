@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="description" content="通过点击/触摸播放声音并出现变化图案的互动内容。">
+  <title>歌tap</title>
+  <link rel="apple-touch-icon" href="icon.png">
+  <link charset="UTF-8" href="shared/sp/css/common.css" rel="stylesheet">
+  <link charset="utf-8" href="css/utatap.css" rel="stylesheet">
+  <script charset="utf-8" src="https://unpkg.com/jquery@3.6.0/dist/jquery.min.js" type="text/javascript"></script>
+  <script charset="utf-8" src="https://unpkg.com/pixi.js@6.0.2/dist/browser/pixi.min.js" type="text/javascript"></script>
+  <script charset="utf-8" src="https://unpkg.com/gsap@3.6.1/dist/gsap.min.js" type="text/javascript"></script>
+  <script charset="UTF-8" src="shared/js/common-2.min.js" type="text/javascript"></script>
+  <script charset="utf-8" src="js/utatap.js" type="text/javascript"></script>
+</head>
+
+<body>
+  <div id="view"></div>
+  <div id="scene_top">
+    <h1>歌tap</h1>
+    <div id="ng">
+      <p class="atten">十分抱歉，<br>您的浏览器并不支持本页面需要的特性</p>
+    </div>
+    <div class="ok">
+      <p id="bt_start"><a href="javascript:void(0);">! 开始 !</a></p>
+    </div>
+    <div class="ok">
+      <p id="bt_select"><a href="javascript:void(0);">: 选择 :</a></p>
+    </div>
+    <p id="bt_about"><a href="javascript:void(0);">* 关于 *</a></p>
+    <div class="ok">
+      <p class="attention">※ 调高你的音量并享受吧！</p>
+    </div>
+  </div>
+  <div id="scene_loading">
+    <p>少女祈祷中</p>
+    <hr size="1" color="#fff"> </div>
+  <div id="scene_main">
+    <div class="set">
+      <p class="attention">点击 &amp; 拖动或者按任意键!</p>
+      <p id="bt_feedback"><a href="javascript:void(0);">反馈: 开启</a></p>
+      <p id="bt_backtrack"><a href="javascript:void(0);">背景音乐: 开启</a></p>
+    </div>
+  </div>
+  <div id="select_cover"></div>
+  <div id="select">
+    <div id="select_in">
+      <p class="close"><span id="bt_close">×</span></p>
+      <div class="split">
+        <div class="container_vocal">
+          <p class="con">选择歌姬</p>
+          <ul id="vocals"></ul>
+          <hr class="custom_dash" />
+          <div class="custom">
+            <input type="file" id="file_vocal" title="从本地上传歌姬" accept=".json">
+            <label for="file_vocal">*自定义*</label>
+          </div>
+        </div>
+        <hr />
+        <div class="container_tracks">
+          <p class="con">选择背景音轨</p>
+          <ul id="tracks"></ul>
+          <hr class="custom_dash" />
+          <div class="custom">
+            <input type="file" id="file_music" title="从本地上传背景音轨" accept=".json">
+            <label for="file_music">*自定义*</label>
+          </div>
+        </div>
+      </div>
+      <p>欢迎将你制作的歌姬与背景音轨文件贡献到 <a href="https://github.com/MrXiaoM/uta-tap/tree/main/data" target="_blank">Github 仓库</a>!</p>
+      <p class="con">本地配置制作教程也在仓库哦~</p>
+    </div>
+  </div>
+  <div id="about_cover"></div>
+  <div id="about">
+    <div id="about_in">
+      <p class="close"><span id="bt_close">×</span></p>
+      <p class="con"> 声音来源 <a href="https://github.com/MrXiaoM/uta-tap/tree/main/data" target="_blank">Github 的各位!</a> </p>
+      <p class="con"> 作者 <a href="https://www.mrxiaom.top/" target="_blank">人间工作</a> </p>
+      <p class="link"> 灵感来源 <a href="https://aidn.jp/mikutap" target="_blank">mikutap</a><br>(原作者 <a href="https://aidn.jp" target="_blank">daniwell</a> (<a href="https://twitter.com/daniwell_aidn" target="_blank">twitter</a>)) </p>
+      <p class="con"> 想要点击开始后自动播放吗? 请在链接后加上 <code>?auto=1</code> </p>
+    </div>
+  </div>
+  <div id="bt_back">＜返回</div>
+  <div id="bt_fs">全屏显示</div>
+</body>
+
+</html>
